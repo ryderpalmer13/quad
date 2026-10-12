@@ -44,15 +44,23 @@ export default function MessagesPage() {
           (message) => message.sender_id === otherId || message.receiver_id === otherId
         )
 
-        const { data: profile } = await supabase
+        let profile = null
+        const full = await supabase
           .from('profiles')
-          .select('email')
+          .select('email, display_name')
           .eq('id', otherId)
           .single()
 
+        if (!full.error) {
+          profile = full.data
+        } else {
+          const basic = await supabase.from('profiles').select('email').eq('id', otherId).single()
+          profile = basic.data
+        }
+
         conversationList.push({
           otherId: otherId,
-          email: profile ? profile.email : otherId,
+          email: profile ? profile.display_name || profile.email : otherId,
           lastMessage: lastMessage.content,
         })
       }
@@ -76,9 +84,9 @@ export default function MessagesPage() {
               style={{ borderBottom: '1px solid var(--color-hairline)', padding: '16px 0' }}
             >
               <div
-                style={{ height: '10px', width: '40%', backgroundColor: '#F0F0F0', marginBottom: '8px' }}
+                style={{ height: '10px', width: '40%', backgroundColor: 'var(--color-surface)', marginBottom: '8px' }}
               />
-              <div style={{ height: '10px', width: '70%', backgroundColor: '#F0F0F0' }} />
+              <div style={{ height: '10px', width: '70%', backgroundColor: 'var(--color-surface)' }} />
             </div>
           ))}
         </div>
@@ -100,7 +108,7 @@ export default function MessagesPage() {
           <p style={{ margin: '0 0 4px 0', fontWeight: 600, fontSize: '14px' }}>
             {conversation.email}
           </p>
-          <p style={{ margin: 0, color: '#888', fontSize: '13px' }}>
+          <p style={{ margin: 0, color: 'var(--color-gray)', fontSize: '13px' }}>
             {conversation.lastMessage}
           </p>
         </Link>

@@ -49,7 +49,7 @@ export default function ForgotPasswordPage() {
   return (
     <div style={{ maxWidth: '400px', margin: '80px auto', padding: '0 24px' }}>
       <h1 style={{ fontSize: '28px', marginBottom: '12px' }}>Reset your password</h1>
-      <p style={{ fontSize: '14px', color: '#666', marginBottom: '32px' }}>
+      <p style={{ fontSize: '14px', color: 'var(--color-gray)', marginBottom: '32px' }}>
         Enter your email and we'll send you a link to choose a new password.
       </p>
       <form onSubmit={handleSubmit}>

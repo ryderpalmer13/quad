@@ -345,7 +345,7 @@ export default function NewListingPage() {
           )}
 
           {photoMessage && (
-            <p style={{ fontSize: '13px', color: '#B00020', marginTop: '10px' }}>{photoMessage}</p>
+            <p style={{ fontSize: '13px', color: '#B3261E', marginTop: '10px' }}>{photoMessage}</p>
           )}
         </div>
 

@@ -1,12 +1,20 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+/* Fonts (Fraunces and Inter) are loaded by a link tag in app/layout.js */
 
+/*
+  Agora U theme: warm cream with burnt orange.
+  The variable names come from the first design, so read them by role:
+  --color-white  = page background (and text that sits on orange)
+  --color-black  = main text color
+  --color-orange = burnt orange
+*/
 :root {
   --color-orange: #BF5700;
-  --color-orange-light: #FBEFE6;
-  --color-black: #1A1A1A;
-  --color-white: #FFFFFF;
-  --color-gray: #999999;
-  --color-hairline: #F0CBAE;
+  --color-orange-light: #EFE4D3;
+  --color-black: #3B2A20;
+  --color-white: #F5EFE6;
+  --color-gray: #6B5F54;
+  --color-hairline: #E3D9CB;
+  --color-surface: #FBF7F1;
   color-scheme: light;
 }
 
@@ -23,8 +31,9 @@ html, body {
 }
 
 h1, h2, h3 {
-  font-family: 'Inter', sans-serif;
-  font-weight: 700;
+  font-family: 'Fraunces', serif;
+  font-weight: 500;
+  letter-spacing: -0.02em;
   margin: 0;
 }
 
@@ -32,28 +41,53 @@ a {
   text-decoration: none;
 }
 
-input, select, textarea {
-  min-width: 0;
+button {
+  border-radius: 6px;
+  font-family: 'Inter', sans-serif;
 }
 
-/* Top bar (laptop layout) */
+input, select, textarea {
+  min-width: 0;
+  background-color: transparent;
+  color: var(--color-black);
+  font-family: 'Inter', sans-serif;
+}
+
+input::placeholder, textarea::placeholder {
+  color: var(--color-gray);
+  opacity: 0.7;
+}
+
+select option {
+  background-color: var(--color-surface);
+  color: var(--color-black);
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: var(--color-orange) !important;
+}
+
+/* Top bar: burnt orange with the logo */
 .nav {
   display: flex;
   align-items: center;
-  padding: 18px 24px;
-  background-color: var(--color-white);
-  border-bottom: 2px solid var(--color-orange);
+  padding: 14px 24px;
+  background-color: var(--color-orange);
   position: sticky;
   top: 0;
   z-index: 10;
 }
 
 .nav-logo {
-  font-weight: 800;
-  font-size: 20px;
-  color: var(--color-orange);
-  letter-spacing: 1px;
-  margin-right: 36px;
+  display: inline-flex;
+  align-items: center;
+  margin-right: 40px;
+}
+
+.nav-logo img {
+  height: 26px;
+  width: auto;
+  display: block;
 }
 
 .nav-links {
@@ -62,14 +96,18 @@ input, select, textarea {
 }
 
 .nav-link {
-  color: var(--color-black);
-  font-size: 12px;
+  color: rgba(255, 248, 239, 0.8);
+  font-size: 13px;
   font-weight: 600;
-  letter-spacing: 1px;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   margin-right: 28px;
   display: inline-flex;
   align-items: center;
+}
+
+.nav-link:hover {
+  color: #FFF8EF;
 }
 
 .nav-right {
@@ -83,20 +121,21 @@ input, select, textarea {
 }
 
 .nav-signup {
-  background-color: var(--color-orange);
-  color: var(--color-white);
-  padding: 10px 20px;
+  background-color: var(--color-white);
+  color: var(--color-orange);
+  padding: 9px 18px;
+  border-radius: 6px;
   font-size: 12px;
   font-weight: 700;
-  letter-spacing: 1px;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 .badge {
-  background-color: var(--color-orange);
-  color: var(--color-white);
+  background-color: var(--color-white);
+  color: var(--color-orange);
   font-size: 10px;
-  font-weight: 700;
+  font-weight: 800;
   min-width: 18px;
   height: 18px;
   border-radius: 9px;
@@ -105,6 +144,24 @@ input, select, textarea {
   justify-content: center;
   margin-left: 6px;
   padding: 0 5px;
+}
+
+/* Listing cards on the Browse page */
+.listing-card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-hairline);
+  border-radius: 8px;
+  overflow: hidden;
+  padding-bottom: 16px;
+}
+
+.listing-card > *:not(.carousel) {
+  margin-left: 16px !important;
+  margin-right: 16px !important;
+}
+
+.listing-card > :first-child:not(.carousel) {
+  margin-top: 16px !important;
 }
 
 /* Bottom tab bar is hidden on laptops */
@@ -122,7 +179,7 @@ input, select, textarea {
 /* Phone layout */
 @media (max-width: 768px) {
   body {
-    padding-bottom: calc(72px + env(safe-area-inset-bottom));
+    padding-bottom: calc(96px + env(safe-area-inset-bottom));
   }
 
   .nav {
@@ -130,8 +187,11 @@ input, select, textarea {
   }
 
   .nav-logo {
-    font-size: 18px;
     margin-right: 0;
+  }
+
+  .nav-logo img {
+    height: 24px;
   }
 
   .nav-links {
@@ -146,15 +206,17 @@ input, select, textarea {
     padding: 8px 14px;
   }
 
+  /* Floating pill tab bar */
   .bottom-tabs {
     display: flex;
     position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: var(--color-white);
-    border-top: 2px solid var(--color-orange);
-    padding-bottom: env(safe-area-inset-bottom);
+    left: 14px;
+    right: 14px;
+    bottom: calc(14px + env(safe-area-inset-bottom));
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-hairline);
+    border-radius: 30px;
+    box-shadow: 0 6px 20px rgba(59, 42, 32, 0.15);
     z-index: 20;
   }
 
@@ -164,12 +226,12 @@ input, select, textarea {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 4px;
-    padding: 9px 0 7px 0;
-    color: #888888;
+    gap: 3px;
+    padding: 10px 0 9px 0;
+    color: #9A8C7E;
     font-size: 10px;
-    font-weight: 600;
-    letter-spacing: 0.5px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
     position: relative;
   }
@@ -195,7 +257,7 @@ input, select, textarea {
     background-color: var(--color-orange);
     color: var(--color-white);
     font-size: 10px;
-    font-weight: 700;
+    font-weight: 800;
     min-width: 16px;
     height: 16px;
     border-radius: 8px;

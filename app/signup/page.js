@@ -51,7 +51,7 @@ export default function SignupPage() {
 
   return (
     <div style={{ maxWidth: '400px', margin: '80px auto', padding: '0 24px' }}>
-      <h1 style={{ fontSize: '28px', marginBottom: '32px' }}>Sign up for QUAD</h1>
+      <h1 style={{ fontSize: '28px', marginBottom: '32px' }}>Sign up for Agora U</h1>
       <form onSubmit={handleSignup}>
         <div style={{ marginBottom: '24px' }}>
           <label style={labelStyle}>Student Email (.edu)</label>

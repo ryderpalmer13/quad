@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { supabase } from '../../utils.supabase.mjs'
+import Avatar from '../../components/Avatar'
 
 const CATEGORIES = ['All', 'Furniture', 'Textbooks', 'Electronics', 'Clothing', 'Dorm & Decor', 'Other']
 
@@ -105,6 +106,7 @@ export default function ListingsPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('All')
   const [currentUserId, setCurrentUserId] = useState(null)
+  const [sellers, setSellers] = useState({})
   const router = useRouter()
 
   useEffect(() => {
@@ -122,6 +124,23 @@ export default function ListingsPage() {
 
       if (!error) {
         setListings(data)
+
+        // Look up seller names and pictures. If that is not set up yet, listings still show.
+        const sellerIds = [...new Set(data.map((listing) => listing.user_id))]
+        if (sellerIds.length > 0) {
+          const { data: profileRows, error: profileError } = await supabase
+            .from('profiles')
+            .select('id, display_name, avatar_url')
+            .in('id', sellerIds)
+
+          if (!profileError && profileRows) {
+            const lookup = {}
+            profileRows.forEach((row) => {
+              lookup[row.id] = row
+            })
+            setSellers(lookup)
+          }
+        }
       }
       setLoading(false)
     }
@@ -217,9 +236,9 @@ export default function ListingsPage() {
         >
           {[1, 2, 3].map((n) => (
             <div key={n}>
-              <div style={{ height: '220px', backgroundColor: '#F0F0F0', marginBottom: '12px' }} />
-              <div style={{ height: '10px', width: '60%', backgroundColor: '#F0F0F0', marginBottom: '8px' }} />
-              <div style={{ height: '14px', width: '40%', backgroundColor: '#F0F0F0' }} />
+              <div style={{ height: '220px', backgroundColor: 'var(--color-surface)', marginBottom: '12px' }} />
+              <div style={{ height: '10px', width: '60%', backgroundColor: 'var(--color-surface)', marginBottom: '8px' }} />
+              <div style={{ height: '14px', width: '40%', backgroundColor: 'var(--color-surface)' }} />
             </div>
           ))}
         </div>
@@ -253,9 +272,28 @@ export default function ListingsPage() {
             <h2 style={{ fontSize: '16px', fontWeight: 600, margin: '0 0 6px 0' }}>
               {listing.title}
             </h2>
-            <p style={{ margin: '0 0 10px 0', color: '#666', fontSize: '13px' }}>
+            <p style={{ margin: '0 0 10px 0', color: 'var(--color-gray)', fontSize: '13px' }}>
               {listing.description}
             </p>
+            {sellers[listing.user_id] && sellers[listing.user_id].display_name && (
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  margin: '0 0 10px 0',
+                  fontSize: '13px',
+                  color: 'var(--color-gray)',
+                }}
+              >
+                <Avatar
+                  url={sellers[listing.user_id].avatar_url}
+                  name={sellers[listing.user_id].display_name}
+                  size={24}
+                />
+                <span>{sellers[listing.user_id].display_name}</span>
+              </div>
+            )}
             <div
               style={{
                 borderTop: '1px solid var(--color-hairline)',

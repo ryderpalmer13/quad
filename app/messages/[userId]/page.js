@@ -27,14 +27,22 @@ export default function ThreadPage() {
 
       setCurrentUserId(userData.user.id)
 
-      const { data: profile } = await supabase
+      let profile = null
+      const full = await supabase
         .from('profiles')
-        .select('email')
+        .select('email, display_name')
         .eq('id', otherUserId)
         .single()
 
+      if (!full.error) {
+        profile = full.data
+      } else {
+        const basic = await supabase.from('profiles').select('email').eq('id', otherUserId).single()
+        profile = basic.data
+      }
+
       if (profile) {
-        setOtherEmail(profile.email)
+        setOtherEmail(profile.display_name || profile.email)
       }
 
       const { data, error } = await supabase
@@ -109,13 +117,13 @@ export default function ThreadPage() {
       {loading && (
         <div style={{ marginBottom: '24px' }}>
           <div style={{ display: 'flex', justifyContent: 'flex-start', marginBottom: '10px' }}>
-            <div style={{ height: '32px', width: '60%', backgroundColor: '#F0F0F0' }} />
+            <div style={{ height: '32px', width: '60%', backgroundColor: 'var(--color-surface)' }} />
           </div>
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '10px' }}>
-            <div style={{ height: '32px', width: '45%', backgroundColor: '#F0F0F0' }} />
+            <div style={{ height: '32px', width: '45%', backgroundColor: 'var(--color-surface)' }} />
           </div>
           <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-            <div style={{ height: '32px', width: '55%', backgroundColor: '#F0F0F0' }} />
+            <div style={{ height: '32px', width: '55%', backgroundColor: 'var(--color-surface)' }} />
           </div>
         </div>
       )}
@@ -137,7 +145,7 @@ export default function ThreadPage() {
                 >
                   <div
                     style={{
-                      backgroundColor: isMine ? 'var(--color-orange)' : '#F5F5F5',
+                      backgroundColor: isMine ? 'var(--color-orange)' : 'var(--color-surface)',
                       color: isMine ? 'var(--color-white)' : 'var(--color-black)',
                       padding: '10px 16px',
                       maxWidth: '75%',

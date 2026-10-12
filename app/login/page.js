@@ -49,7 +49,7 @@ export default function LoginPage() {
 
   return (
     <div style={{ maxWidth: '400px', margin: '80px auto', padding: '0 24px' }}>
-      <h1 style={{ fontSize: '28px', marginBottom: '32px' }}>Log in to QUAD</h1>
+      <h1 style={{ fontSize: '28px', marginBottom: '32px' }}>Log in to Agora U</h1>
       <form onSubmit={handleLogin}>
         <div style={{ marginBottom: '24px' }}>
           <label style={labelStyle}>Email</label>

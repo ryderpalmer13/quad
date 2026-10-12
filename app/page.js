@@ -37,105 +37,148 @@ export default function Home() {
     return Number(value).toFixed(2)
   }
 
+  const primaryButton = {
+    flex: '1 1 220px',
+    maxWidth: '280px',
+    textAlign: 'center',
+    backgroundColor: 'var(--color-orange)',
+    color: 'var(--color-white)',
+    padding: '16px 30px',
+    borderRadius: '6px',
+    fontFamily: "'Inter', sans-serif",
+    fontSize: '16px',
+    fontWeight: 600,
+  }
+
+  const secondaryButton = {
+    flex: '1 1 220px',
+    maxWidth: '280px',
+    textAlign: 'center',
+    border: '1.5px solid var(--color-orange)',
+    backgroundColor: 'transparent',
+    color: 'var(--color-orange)',
+    padding: '14.5px 30px',
+    borderRadius: '6px',
+    fontFamily: "'Inter', sans-serif",
+    fontSize: '16px',
+    fontWeight: 600,
+  }
+
   return (
     <div>
-      <section
-        style={{
-          backgroundColor: 'var(--color-orange)',
-          color: 'var(--color-white)',
-          padding: '72px 24px',
-          textAlign: 'center',
-        }}
-      >
-        <h1 style={{ fontSize: '44px', fontWeight: 800, lineHeight: 1.1, marginBottom: '16px' }}>
-          Buy and sell with students at UT.
+      <section style={{ maxWidth: '1100px', margin: '0 auto', padding: '64px 24px 24px 24px' }}>
+        <h1
+          style={{
+            fontSize: 'clamp(40px, 8vw, 72px)',
+            fontWeight: 500,
+            lineHeight: 1.05,
+            letterSpacing: '-0.025em',
+            maxWidth: '820px',
+            marginBottom: '20px',
+          }}
+        >
+          The campus marketplace{' '}
+          <span style={{ color: 'var(--color-orange)' }}>you can actually trust.</span>
         </h1>
-        <p style={{ fontSize: '16px', maxWidth: '480px', margin: '0 auto 32px auto', opacity: 0.95 }}>
-          Furniture, textbooks, dorm stuff. Verified students only, so you know who you're dealing
-          with.
+        <p
+          style={{
+            fontSize: '18px',
+            lineHeight: 1.5,
+            maxWidth: '520px',
+            margin: '0 0 32px 0',
+            color: 'var(--color-gray)',
+          }}
+        >
+          Buy and sell furniture, textbooks and dorm essentials with students at your school.
+          Every member is verified with a .edu email.
         </p>
-        <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
-          <Link
-            href="/listings"
-            style={{
-              backgroundColor: 'var(--color-white)',
-              color: 'var(--color-orange)',
-              padding: '14px 28px',
-              fontSize: '12px',
-              fontWeight: 700,
-              letterSpacing: '1px',
-              textTransform: 'uppercase',
-            }}
-          >
-            Browse Listings
+        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+          <Link href="/listings" style={primaryButton}>
+            Browse listings
           </Link>
           {!loggedIn && (
-            <Link
-              href="/signup"
-              style={{
-                border: '2px solid var(--color-white)',
-                color: 'var(--color-white)',
-                padding: '12px 28px',
-                fontSize: '12px',
-                fontWeight: 700,
-                letterSpacing: '1px',
-                textTransform: 'uppercase',
-              }}
-            >
+            <Link href="/signup" style={secondaryButton}>
               Join with your .edu
             </Link>
           )}
         </div>
       </section>
 
-      <section style={{ maxWidth: '1100px', margin: '56px auto', padding: '0 24px' }}>
-        <h2 style={{ fontSize: '22px', marginBottom: '24px' }}>Just listed</h2>
+      <section style={{ maxWidth: '1100px', margin: '48px auto', padding: '0 24px' }}>
+        <h2 style={{ fontSize: '28px', marginBottom: '24px' }}>Recently listed</h2>
 
         {loading && (
           <div
             style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
-              gap: '24px',
+              gap: '20px',
             }}
           >
             {[1, 2, 3].map((n) => (
               <div key={n}>
-                <div style={{ height: '180px', backgroundColor: '#F0F0F0', marginBottom: '10px' }} />
-                <div style={{ height: '12px', width: '60%', backgroundColor: '#F0F0F0' }} />
+                <div
+                  style={{
+                    height: '200px',
+                    borderRadius: '8px',
+                    backgroundColor: 'var(--color-surface)',
+                    marginBottom: '12px',
+                  }}
+                />
+                <div style={{ height: '12px', width: '60%', backgroundColor: 'var(--color-surface)' }} />
               </div>
             ))}
           </div>
         )}
 
-        {!loading && listings.length === 0 && <p>No listings yet. Be the first to post one.</p>}
+        {!loading && listings.length === 0 && (
+          <p style={{ color: 'var(--color-gray)' }}>No listings yet. Be the first to post one.</p>
+        )}
 
         <div
           style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
-            gap: '24px',
+            gap: '20px',
           }}
         >
           {listings.map((listing) => (
             <Link
               key={listing.id}
               href="/listings"
-              style={{ color: 'var(--color-black)', display: 'block' }}
+              style={{
+                color: 'var(--color-black)',
+                display: 'block',
+                backgroundColor: 'var(--color-surface)',
+                border: '1px solid var(--color-hairline)',
+                borderRadius: '8px',
+                overflow: 'hidden',
+              }}
             >
               {firstPhoto(listing) && (
                 <img
                   src={firstPhoto(listing)}
                   alt={listing.title}
-                  style={{ width: '100%', height: '180px', objectFit: 'cover', display: 'block' }}
+                  style={{ width: '100%', height: '200px', objectFit: 'cover', display: 'block' }}
                 />
               )}
-              <p style={{ fontSize: '14px', fontWeight: 600, margin: '10px 0 4px 0' }}>
-                {listing.title}
-              </p>
-              <p style={{ fontSize: '14px', fontWeight: 800, color: 'var(--color-orange)', margin: 0 }}>
-                ${formatPrice(listing.price)}
-              </p>
+              <div style={{ padding: '14px 16px 16px 16px' }}>
+                <p style={{ fontSize: '15px', fontWeight: 700, margin: '0 0 6px 0' }}>
+                  {listing.title}
+                </p>
+                <p
+                  style={{
+                    fontFamily: "'Inter', sans-serif",
+                    fontSize: '18px',
+                    fontWeight: 700,
+                    letterSpacing: '-0.02em',
+                    color: 'var(--color-orange)',
+                    margin: 0,
+                  }}
+                >
+                  ${formatPrice(listing.price)}
+                </p>
+              </div>
             </Link>
           ))}
         </div>
@@ -144,7 +187,7 @@ export default function Home() {
           <div style={{ marginTop: '32px' }}>
             <Link
               href="/listings"
-              style={{ fontSize: '13px', color: 'var(--color-black)', textDecoration: 'underline' }}
+              style={{ fontSize: '14px', fontWeight: 700, color: 'var(--color-orange)' }}
             >
               See all listings
             </Link>
