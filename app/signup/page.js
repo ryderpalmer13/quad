@@ -1,16 +1,19 @@
 'use client'
 
 import { useState } from 'react'
+import SpamNote from '../../components/SpamNote'
 import { supabase } from '../../utils.supabase.mjs'
 
 export default function SignupPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [message, setMessage] = useState('')
+  const [sent, setSent] = useState(false)
 
   async function handleSignup(e) {
     e.preventDefault()
     setMessage('')
+    setSent(false)
 
     if (!email.endsWith('.edu')) {
       setMessage('Please use a valid .edu student email address.')
@@ -25,7 +28,7 @@ export default function SignupPage() {
     if (error) {
       setMessage(error.message)
     } else {
-      setMessage('Success! Check your email to confirm your account.')
+      setSent(true)
     }
   }
 
@@ -91,7 +94,8 @@ export default function SignupPage() {
           Sign Up
         </button>
       </form>
-      {message && <p style={{ marginTop: '16px', fontSize: '14px' }}>{message}</p>}
+      {message && <p style={{ marginTop: '16px', fontSize: '14px', color: '#B3261E' }}>{message}</p>}
+      {sent && <SpamNote>Success! Check your email to confirm your account.</SpamNote>}
     </div>
   )
 }

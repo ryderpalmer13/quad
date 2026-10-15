@@ -2,15 +2,18 @@
 
 import { useState } from 'react'
 import { supabase } from '../../utils.supabase.mjs'
+import SpamNote from '../../components/SpamNote'
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('')
   const [message, setMessage] = useState('')
   const [sending, setSending] = useState(false)
+  const [sent, setSent] = useState(false)
 
   async function handleSubmit(e) {
     e.preventDefault()
     setMessage('')
+    setSent(false)
     setSending(true)
 
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
@@ -22,7 +25,7 @@ export default function ForgotPasswordPage() {
     if (error) {
       setMessage(error.message)
     } else {
-      setMessage('If that email has an account, a reset link is on its way. Check spam too.')
+      setSent(true)
     }
   }
 
@@ -83,7 +86,8 @@ export default function ForgotPasswordPage() {
           {sending ? 'Sending...' : 'Send Reset Link'}
         </button>
       </form>
-      {message && <p style={{ marginTop: '16px', fontSize: '14px' }}>{message}</p>}
+      {message && <p style={{ marginTop: '16px', fontSize: '14px', color: '#B3261E' }}>{message}</p>}
+      {sent && <SpamNote>If that email has an account, a reset link is on its way.</SpamNote>}
     </div>
   )
 }
