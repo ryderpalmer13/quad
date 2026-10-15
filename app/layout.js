@@ -4,6 +4,11 @@ import NavBar from '../components/NavBar'
 export const metadata = {
   title: 'Agora U',
   description: 'The campus marketplace you can actually trust. Verified college students only.',
+  appleWebApp: {
+    capable: true,
+    title: 'Agora U',
+    statusBarStyle: 'default',
+  },
 }
 
 export const viewport = {
