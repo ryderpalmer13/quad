@@ -6,8 +6,9 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '../../utils.supabase.mjs'
 import Avatar from '../../components/Avatar'
 import ReportButton from '../../components/ReportButton'
+import { CATEGORIES } from '../../components/listingOptions'
 
-const CATEGORIES = ['All', 'Furniture', 'Textbooks', 'Electronics', 'Clothing', 'Dorm & Decor', 'Other']
+const FILTER_CATEGORIES = ['All', ...CATEGORIES]
 
 function PhotoCarousel({ photos, alt }) {
   const [index, setIndex] = useState(0)
@@ -162,7 +163,7 @@ export default function ListingsPage() {
   }
 
   function formatPrice(value) {
-    return Number(value).toFixed(2)
+    return Number(value) === 0 ? 'Free' : '$' + Number(value).toFixed(2)
   }
 
   function handleMessageSeller(sellerId) {
@@ -219,7 +220,7 @@ export default function ListingsPage() {
             backgroundColor: 'transparent',
           }}
         >
-          {CATEGORIES.map((c) => (
+          {FILTER_CATEGORIES.map((c) => (
             <option key={c} value={c}>
               {c === 'All' ? 'All Categories' : c}
             </option>
@@ -305,7 +306,7 @@ export default function ListingsPage() {
               }}
             >
               <span style={{ fontWeight: 800, fontSize: '18px', color: 'var(--color-orange)' }}>
-                ${formatPrice(listing.price)}
+                {formatPrice(listing.price)}
               </span>
               {currentUserId === listing.user_id ? (
                 <span

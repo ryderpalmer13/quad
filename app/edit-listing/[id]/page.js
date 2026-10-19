@@ -3,9 +3,9 @@
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { supabase } from '../../../utils.supabase.mjs'
+import Dropdown from '../../../components/Dropdown'
+import { CATEGORIES, CATEGORY_OPTIONS, CONDITIONS, normalizeCondition } from '../../../components/listingOptions'
 
-const CATEGORIES = ['Furniture', 'Textbooks', 'Electronics', 'Clothing', 'Dorm & Decor', 'Other']
-const CONDITIONS = ['New', 'Like New', 'Good', 'Used', 'Well Loved']
 
 export default function EditListingPage() {
   const params = useParams()
@@ -16,7 +16,7 @@ export default function EditListingPage() {
   const [description, setDescription] = useState('')
   const [price, setPrice] = useState('')
   const [category, setCategory] = useState(CATEGORIES[0])
-  const [condition, setCondition] = useState(CONDITIONS[0])
+  const [condition, setCondition] = useState(CONDITIONS[0].value)
   const [loading, setLoading] = useState(true)
   const [message, setMessage] = useState('')
   const [saving, setSaving] = useState(false)
@@ -47,7 +47,7 @@ export default function EditListingPage() {
       setDescription(data.description)
       setPrice(data.price)
       setCategory(data.category || CATEGORIES[0])
-      setCondition(data.condition || CONDITIONS[0])
+      setCondition(normalizeCondition(data.condition))
       setLoading(false)
     }
 
@@ -140,35 +140,18 @@ export default function EditListingPage() {
               style={inputStyle}
             />
           </div>
-          <div style={{ marginBottom: '24px', display: 'flex', gap: '20px' }}>
-            <div style={{ flex: 1 }}>
-              <label style={labelStyle}>Category</label>
-              <select
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                style={inputStyle}
-              >
-                {CATEGORIES.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div style={{ flex: 1 }}>
-              <label style={labelStyle}>Condition</label>
-              <select
-                value={condition}
-                onChange={(e) => setCondition(e.target.value)}
-                style={inputStyle}
-              >
-                {CONDITIONS.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
-            </div>
+          <div style={{ marginBottom: '24px' }}>
+            <label style={labelStyle}>Category</label>
+            <Dropdown options={CATEGORY_OPTIONS} value={category} onChange={setCategory} />
+          </div>
+          <div style={{ marginBottom: '24px' }}>
+            <label style={labelStyle}>Condition</label>
+            <Dropdown
+              options={CONDITIONS}
+              value={condition}
+              onChange={setCondition}
+              summary={(o) => (o.hint ? `${o.label}: ${o.hint}` : o.label)}
+            />
           </div>
           <div style={{ marginBottom: '32px' }}>
             <label style={labelStyle}>Price</label>

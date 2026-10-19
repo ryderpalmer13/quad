@@ -2,9 +2,9 @@
 
 import { useState } from 'react'
 import { supabase } from '../../utils.supabase.mjs'
+import Dropdown from '../../components/Dropdown'
+import { CATEGORIES, CATEGORY_OPTIONS, CONDITIONS, normalizeCondition } from '../../components/listingOptions'
 
-const CATEGORIES = ['Furniture', 'Textbooks', 'Electronics', 'Clothing', 'Dorm & Decor', 'Other']
-const CONDITIONS = ['New', 'Like New', 'Good', 'Used', 'Well Loved']
 const MAX_PHOTOS = 4
 const MAX_DIMENSION = 1600
 const MAX_BYTES = 5 * 1024 * 1024
@@ -53,7 +53,7 @@ export default function NewListingPage() {
   const [description, setDescription] = useState('')
   const [price, setPrice] = useState('')
   const [category, setCategory] = useState(CATEGORIES[0])
-  const [condition, setCondition] = useState(CONDITIONS[0])
+  const [condition, setCondition] = useState(CONDITIONS[0].value)
   const [photos, setPhotos] = useState([])
   const [photoMessage, setPhotoMessage] = useState('')
   const [message, setMessage] = useState('')
@@ -233,35 +233,18 @@ export default function NewListingPage() {
             style={inputStyle}
           />
         </div>
-        <div style={{ marginBottom: '24px', display: 'flex', gap: '20px' }}>
-          <div style={{ flex: 1 }}>
-            <label style={labelStyle}>Category</label>
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              style={inputStyle}
-            >
-              {CATEGORIES.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div style={{ flex: 1 }}>
-            <label style={labelStyle}>Condition</label>
-            <select
-              value={condition}
-              onChange={(e) => setCondition(e.target.value)}
-              style={inputStyle}
-            >
-              {CONDITIONS.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
-          </div>
+        <div style={{ marginBottom: '24px' }}>
+          <label style={labelStyle}>Category</label>
+          <Dropdown options={CATEGORY_OPTIONS} value={category} onChange={setCategory} />
+        </div>
+        <div style={{ marginBottom: '24px' }}>
+          <label style={labelStyle}>Condition</label>
+          <Dropdown
+            options={CONDITIONS}
+            value={condition}
+            onChange={setCondition}
+            summary={(o) => (o.hint ? `${o.label}: ${o.hint}` : o.label)}
+          />
         </div>
         <div style={{ marginBottom: '24px' }}>
           <label style={labelStyle}>Price</label>

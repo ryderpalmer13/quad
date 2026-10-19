@@ -34,7 +34,7 @@ export default function Home() {
   }
 
   function formatPrice(value) {
-    return Number(value).toFixed(2)
+    return Number(value) === 0 ? 'Free' : '$' + Number(value).toFixed(2)
   }
 
   const primaryButton = {
@@ -176,7 +176,7 @@ export default function Home() {
                     margin: 0,
                   }}
                 >
-                  ${formatPrice(listing.price)}
+                  {formatPrice(listing.price)}
                 </p>
               </div>
             </Link>
