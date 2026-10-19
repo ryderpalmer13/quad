@@ -24,10 +24,7 @@ export default function HowItWorks({ compact = false }) {
           display: 'grid',
           gridTemplateColumns: 'repeat(3, 1fr)',
           gap: '8px',
-          backgroundColor: 'var(--color-surface)',
-          border: '1px solid var(--color-hairline)',
-          borderRadius: '10px',
-          padding: '14px 8px',
+          padding: '4px 0',
           fontFamily: 'Inter, sans-serif',
           fontSize: '13px',
           fontWeight: 600,
@@ -57,7 +54,7 @@ export default function HowItWorks({ compact = false }) {
           </div>
         ))}
       </div>
-      <p style={{ margin: '10px 2px 0 2px', fontSize: '13px', color: 'var(--color-gray)' }}>
+      <p style={{ margin: '10px 0 0 0', textAlign: 'center', fontSize: '13px', color: 'var(--color-gray)' }}>
         No checkout. You pay the student directly when you meet.
       </p>
     </section>
