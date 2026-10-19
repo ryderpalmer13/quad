@@ -1,77 +1,65 @@
-const STEPS = [
-  { title: 'Message seller', text: 'Chat in the app to ask questions and set a time.' },
-  { title: 'Meet up', text: 'Pick a public spot on campus and check the item in person.' },
-  { title: 'Pay in person', text: 'Pay the seller directly. Agora U has no checkout.' },
-]
-
-// compact: one short line for the top of the Browse page.
-// full: three numbered steps for the home page.
+// compact: one small quiet line for the top of the Browse page.
+// full: one slim strip with the three steps, for the home page.
 export default function HowItWorks({ compact = false }) {
   if (compact) {
     return (
       <p
         style={{
-          margin: '0 0 24px 0',
-          padding: '12px 16px',
-          backgroundColor: 'var(--color-orange-light)',
-          borderLeft: '3px solid var(--color-orange)',
-          borderRadius: '4px',
-          fontSize: '14px',
-          lineHeight: 1.4,
-          color: 'var(--color-black)',
+          margin: '-8px 0 20px 0',
+          fontSize: '13px',
+          color: 'var(--color-gray)',
         }}
       >
-        <strong>Message seller. Meet up. Pay in person.</strong> There is no checkout, so you pay the
-        student directly when you meet.
+        Message seller. Meet up. Pay in person.
       </p>
     )
   }
 
+  const steps = ['Message seller', 'Meet up', 'Pay in person']
+
   return (
-    <section style={{ maxWidth: '1100px', margin: '24px auto 0 auto', padding: '0 24px' }}>
-      <h2 style={{ fontSize: '28px', marginBottom: '20px' }}>How it works</h2>
+    <section style={{ maxWidth: '1100px', margin: '8px auto 0 auto', padding: '0 24px' }}>
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))',
-          gap: '16px',
+          gridTemplateColumns: 'repeat(3, 1fr)',
+          gap: '8px',
+          backgroundColor: 'var(--color-surface)',
+          border: '1px solid var(--color-hairline)',
+          borderRadius: '10px',
+          padding: '14px 8px',
+          fontFamily: 'Inter, sans-serif',
+          fontSize: '13px',
+          fontWeight: 600,
+          color: 'var(--color-black)',
+          textAlign: 'center',
         }}
       >
-        {STEPS.map((step, i) => (
-          <div
-            key={step.title}
-            style={{
-              backgroundColor: 'var(--color-surface)',
-              border: '1px solid var(--color-hairline)',
-              borderRadius: '10px',
-              padding: '20px',
-            }}
-          >
-            <div
+        {steps.map((step, i) => (
+          <div key={step} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
+            <span
               style={{
-                width: '30px',
-                height: '30px',
+                width: '22px',
+                height: '22px',
                 borderRadius: '50%',
                 backgroundColor: 'var(--color-orange)',
                 color: 'var(--color-white)',
-                display: 'flex',
+                display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontFamily: 'Inter, sans-serif',
+                fontSize: '12px',
                 fontWeight: 700,
-                fontSize: '14px',
-                marginBottom: '12px',
               }}
             >
               {i + 1}
-            </div>
-            <h3 style={{ fontSize: '18px', margin: '0 0 6px 0' }}>{step.title}</h3>
-            <p style={{ margin: 0, fontSize: '14px', lineHeight: 1.45, color: 'var(--color-gray)' }}>
-              {step.text}
-            </p>
+            </span>
+            {step}
           </div>
         ))}
       </div>
+      <p style={{ margin: '10px 2px 0 2px', fontSize: '13px', color: 'var(--color-gray)' }}>
+        No checkout. You pay the student directly when you meet.
+      </p>
     </section>
   )
 }
