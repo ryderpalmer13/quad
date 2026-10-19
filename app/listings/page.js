@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '../../utils.supabase.mjs'
 import Avatar from '../../components/Avatar'
 import ReportButton from '../../components/ReportButton'
+import HowItWorks from '../../components/HowItWorks'
 import { CATEGORIES } from '../../components/listingOptions'
 
 const FILTER_CATEGORIES = ['All', ...CATEGORIES]
@@ -191,6 +192,8 @@ export default function ListingsPage() {
         Browse Listings
       </h1>
 
+      <HowItWorks compact />
+
       <div style={{ display: 'flex', gap: '20px', marginBottom: '24px', alignItems: 'flex-end' }}>
         <input
           type="text"
@@ -222,7 +225,7 @@ export default function ListingsPage() {
         >
           {FILTER_CATEGORIES.map((c) => (
             <option key={c} value={c}>
-              {c === 'All' ? 'All Categories' : c}
+              {c === 'All' ? 'All items' : c}
             </option>
           ))}
         </select>

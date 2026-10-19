@@ -171,6 +171,10 @@ export default function ThreadPage() {
             })}
           </div>
 
+          <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: 'var(--color-gray)' }}>
+            Meet in a public spot on campus and pay in person.
+          </p>
+
           <form onSubmit={handleSend} style={{ display: 'flex', gap: '12px' }}>
             <input
               type="text"

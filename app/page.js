@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { supabase } from '../utils.supabase.mjs'
+import HowItWorks from '../components/HowItWorks'
 
 export default function Home() {
   const [listings, setListings] = useState([])
@@ -103,6 +104,8 @@ export default function Home() {
           )}
         </div>
       </section>
+
+      <HowItWorks />
 
       <section style={{ maxWidth: '1100px', margin: '48px auto', padding: '0 24px' }}>
         <h2 style={{ fontSize: '28px', marginBottom: '24px' }}>Recently listed</h2>
