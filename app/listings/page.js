@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { supabase } from '../../utils.supabase.mjs'
 import Avatar from '../../components/Avatar'
+import ReportButton from '../../components/ReportButton'
 
 const CATEGORIES = ['All', 'Furniture', 'Textbooks', 'Electronics', 'Clothing', 'Dorm & Decor', 'Other']
 
@@ -337,6 +338,15 @@ export default function ListingsPage() {
                 </button>
               )}
             </div>
+            {currentUserId !== listing.user_id && (
+              <div style={{ marginTop: '10px' }}>
+                <ReportButton
+                  listingId={String(listing.id)}
+                  reportedUserId={String(listing.user_id)}
+                  label="Report listing"
+                />
+              </div>
+            )}
             {currentUserId === listing.user_id && (
               <div style={{ display: 'flex', gap: '16px', marginTop: '10px' }}>
                 <Link

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import { supabase } from '../../../utils.supabase.mjs'
+import ReportButton from '../../../components/ReportButton'
 
 export default function ThreadPage() {
   const params = useParams()
@@ -110,9 +111,20 @@ export default function ThreadPage() {
 
   return (
     <div style={{ maxWidth: '500px', margin: '48px auto', padding: '0 24px' }}>
-      <h1 style={{ fontSize: '22px', marginBottom: '28px', fontWeight: 600 }}>
-        {otherEmail || 'Conversation'}
-      </h1>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'baseline',
+          justifyContent: 'space-between',
+          gap: '12px',
+          marginBottom: '28px',
+        }}
+      >
+        <h1 style={{ fontSize: '22px', margin: 0, fontWeight: 600 }}>
+          {otherEmail || 'Conversation'}
+        </h1>
+        {currentUserId && <ReportButton reportedUserId={String(otherUserId)} label="Report" />}
+      </div>
 
       {loading && (
         <div style={{ marginBottom: '24px' }}>
