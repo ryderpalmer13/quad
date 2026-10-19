@@ -1,9 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Fragment } from 'react'
 import Link from 'next/link'
 import { supabase } from '../utils.supabase.mjs'
 import HowItWorks from '../components/HowItWorks'
+import { CATEGORIES } from '../components/listingOptions'
+import FloatingIcons from '../components/FloatingIcons'
+import Reveal from '../components/Reveal'
 
 export default function Home() {
   const [listings, setListings] = useState([])
@@ -54,22 +57,57 @@ export default function Home() {
 
   return (
     <div>
-      <section style={{ maxWidth: '1100px', margin: '0 auto', padding: '64px 24px 24px 24px' }}>
+      <div className="hero-wrap">
+      <div className="hero-glow" />
+      <section
+        style={{
+          position: 'relative',
+          maxWidth: '1100px',
+          margin: '0 auto',
+          padding: '64px 24px 24px 24px',
+        }}
+      >
         <h1
           style={{
-            fontSize: 'clamp(40px, 8vw, 72px)',
+            fontSize: 'clamp(42px, 9vw, 76px)',
             fontWeight: 500,
             lineHeight: 1.05,
             letterSpacing: '-0.025em',
             maxWidth: '820px',
-            marginBottom: '20px',
+            marginBottom: '22px',
           }}
         >
-          The campus marketplace{' '}
-          <span style={{ color: 'var(--color-orange)' }}>you can actually trust.</span>
+          {['The', 'campus', 'marketplace'].map((w, i) => (
+            <Fragment key={w}>
+              <span className="word-mask">
+                <span className="word-in" style={{ '--d': `${0.05 + i * 0.1}s` }}>
+                  {w}
+                </span>
+              </span>{' '}
+            </Fragment>
+          ))}
+          {['you', 'can', 'actually'].map((w, i) => (
+            <Fragment key={w}>
+              <span className="word-mask" style={{ color: 'var(--color-orange)' }}>
+                <span className="word-in" style={{ '--d': `${0.4 + i * 0.1}s` }}>
+                  {w}
+                </span>
+              </span>{' '}
+            </Fragment>
+          ))}
+          <span className="word-mask" style={{ color: 'var(--color-orange)', position: 'relative' }}>
+            <span className="word-in" style={{ '--d': '0.7s' }}>
+              trust.
+            </span>
+            <svg className="squiggle" viewBox="0 0 100 10" preserveAspectRatio="none">
+              <path d="M1 6 Q 13 0 25 5 T 50 5 T 75 5 T 99 4" />
+            </svg>
+          </span>
         </h1>
         <p
+          className="rise"
           style={{
+            '--d': '0.95s',
             fontSize: '18px',
             lineHeight: 1.5,
             maxWidth: '520px',
@@ -81,17 +119,41 @@ export default function Home() {
           Every member is verified with a .edu email.
         </p>
         {!loggedIn && (
-          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-            <Link href="/signup" style={primaryButton}>
+          <div className="rise" style={{ '--d': '1.1s', display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+            <Link href="/signup" className="press shimmer" style={primaryButton}>
               Join with your .edu
             </Link>
           </div>
         )}
+
+        <div className="rise" style={{ '--d': '1.25s' }}>
+          <FloatingIcons />
+        </div>
       </section>
+      </div>
+
+      <div className="marquee-wrap" aria-hidden="true">
+        <div className="marquee">
+          <div className="marquee-track">
+            {[0, 1].map((n) => (
+              <div className="marquee-set" key={n}>
+                {CATEGORIES.map((c) => (
+                  <span key={c} className="marquee-item">
+                    {c}
+                    <i />
+                  </span>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
 
       <HowItWorks />
 
       <section style={{ maxWidth: '1100px', margin: '48px auto', padding: '0 24px' }}>
+        <Reveal>
         <h2 style={{ fontSize: '28px', marginBottom: '24px' }}>Recently listed</h2>
 
         {loading && (
@@ -133,6 +195,7 @@ export default function Home() {
             <Link
               key={listing.id}
               href="/listings"
+              className="press"
               style={{
                 color: 'var(--color-black)',
                 display: 'block',
@@ -180,6 +243,18 @@ export default function Home() {
             </Link>
           </div>
         )}
+        </Reveal>
+      </section>
+
+      <section className="verified">
+        <Reveal className="verified-inner">
+          <svg className="check-draw" viewBox="0 0 64 64" width="72" height="72" fill="none">
+            <circle cx="32" cy="32" r="28" />
+            <path d="M19 33 L29 43 L46 23" />
+          </svg>
+          <h2>Verified students only.</h2>
+          <p>Every member signs up with a .edu email, so you only ever meet real students from your campus.</p>
+        </Reveal>
       </section>
     </div>
   )

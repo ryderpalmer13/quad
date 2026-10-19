@@ -113,6 +113,12 @@ export default function ListingsPage() {
   const router = useRouter()
 
   useEffect(() => {
+    // Category chips on the home page link here with ?category=Furniture
+    const wanted = new URLSearchParams(window.location.search).get('category')
+    if (wanted && CATEGORIES.includes(wanted)) setCategoryFilter(wanted)
+  }, [])
+
+  useEffect(() => {
     async function fetchListings() {
       const { data: userData } = await supabase.auth.getUser()
       if (userData.user) {
