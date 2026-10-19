@@ -446,6 +446,14 @@ export default function ProfilePage() {
           <span>Edit profile</span>
           <span style={{ color: '#9A8C7E' }}>›</span>
         </button>
+        <Link href="/terms" style={linkRow}>
+          <span>Terms of Service</span>
+          <span style={{ color: '#9A8C7E' }}>›</span>
+        </Link>
+        <Link href="/privacy" style={linkRow}>
+          <span>Privacy Policy</span>
+          <span style={{ color: '#9A8C7E' }}>›</span>
+        </Link>
         <button style={linkRow} onClick={handleLogout}>
           <span>Log out</span>
           <span style={{ color: '#9A8C7E' }}>›</span>

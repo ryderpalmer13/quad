@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import SpamNote from '../../components/SpamNote'
 import { supabase } from '../../utils.supabase.mjs'
 
@@ -94,6 +95,17 @@ export default function SignupPage() {
           Sign Up
         </button>
       </form>
+      <p style={{ marginTop: '14px', fontSize: '12px', lineHeight: 1.5, color: 'var(--color-gray)' }}>
+        By signing up you agree to the{' '}
+        <Link href="/terms" style={{ color: 'var(--color-orange)', textDecoration: 'underline' }}>
+          Terms of Service
+        </Link>{' '}
+        and{' '}
+        <Link href="/privacy" style={{ color: 'var(--color-orange)', textDecoration: 'underline' }}>
+          Privacy Policy
+        </Link>
+        .
+      </p>
       {message && <p style={{ marginTop: '16px', fontSize: '14px', color: '#B3261E' }}>{message}</p>}
       {sent && <SpamNote>Success! Check your email to confirm your account.</SpamNote>}
     </div>
