@@ -51,19 +51,6 @@ export default function Home() {
     fontWeight: 600,
   }
 
-  const secondaryButton = {
-    flex: '1 1 220px',
-    maxWidth: '280px',
-    textAlign: 'center',
-    border: '1.5px solid var(--color-orange)',
-    backgroundColor: 'transparent',
-    color: 'var(--color-orange)',
-    padding: '14.5px 30px',
-    borderRadius: '6px',
-    fontFamily: "'Inter', sans-serif",
-    fontSize: '16px',
-    fontWeight: 600,
-  }
 
   return (
     <div>
@@ -93,16 +80,13 @@ export default function Home() {
           Buy and sell furniture, textbooks and dorm essentials with students at your school.
           Every member is verified with a .edu email.
         </p>
-        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-          <Link href="/listings" style={primaryButton}>
-            Browse listings
-          </Link>
-          {!loggedIn && (
-            <Link href="/signup" style={secondaryButton}>
+        {!loggedIn && (
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+            <Link href="/signup" style={primaryButton}>
               Join with your .edu
             </Link>
-          )}
-        </div>
+          </div>
+        )}
       </section>
 
       <HowItWorks />
