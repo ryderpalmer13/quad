@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { supabase } from '../../utils.supabase.mjs'
 import Avatar from '../../components/Avatar'
+import { paymentsEnabledFor } from '../../lib/payments'
 
 // Crop to a centered square and shrink, so profile pictures stay small and load fast.
 function squarePhoto(file, size) {
@@ -43,6 +44,7 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true)
   const [userId, setUserId] = useState(null)
   const [email, setEmail] = useState('')
+  const [showPayouts, setShowPayouts] = useState(false)
   const [displayName, setDisplayName] = useState('')
   const [avatarUrl, setAvatarUrl] = useState(null)
   const [listings, setListings] = useState([])
@@ -62,6 +64,7 @@ export default function ProfilePage() {
       const id = userData.user.id
       setUserId(id)
       setEmail(userData.user.email || '')
+      setShowPayouts(paymentsEnabledFor(userData.user.email))
 
       const full = await supabase
         .from('profiles')
@@ -446,6 +449,12 @@ export default function ProfilePage() {
           <span>Edit profile</span>
           <span style={{ color: '#9A8C7E' }}>›</span>
         </button>
+        {showPayouts && (
+          <Link href="/payouts" style={linkRow}>
+            <span>Seller payouts</span>
+            <span style={{ color: '#9A8C7E' }}>›</span>
+          </Link>
+        )}
         <Link href="/terms" style={linkRow}>
           <span>Terms of Service</span>
           <span style={{ color: '#9A8C7E' }}>›</span>
