@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { supabase } from '../../utils.supabase.mjs'
 import Dropdown from '../../components/Dropdown'
+import FeeNote from '../../components/FeeNote'
 import { CATEGORIES, CATEGORY_OPTIONS, CONDITIONS, normalizeCondition } from '../../components/listingOptions'
 
 const MAX_PHOTOS = 4
@@ -256,6 +257,7 @@ export default function NewListingPage() {
             required
             style={inputStyle}
           />
+          <FeeNote price={price} />
         </div>
 
         <div style={{ marginBottom: '32px' }}>

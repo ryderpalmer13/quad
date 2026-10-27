@@ -8,6 +8,7 @@ import Avatar from '../../components/Avatar'
 import ReportButton from '../../components/ReportButton'
 import HowItWorks from '../../components/HowItWorks'
 import { CATEGORIES } from '../../components/listingOptions'
+import { paymentsEnabledFor, priceToCents, canPayInApp } from '../../lib/payments'
 
 const FILTER_CATEGORIES = ['All', ...CATEGORIES]
 
@@ -109,6 +110,9 @@ export default function ListingsPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('All')
   const [currentUserId, setCurrentUserId] = useState(null)
+  const [payEnabled, setPayEnabled] = useState(false)
+  const [buyingId, setBuyingId] = useState(null)
+  const [buyErrors, setBuyErrors] = useState({})
   const [sellers, setSellers] = useState({})
   const router = useRouter()
 
@@ -123,6 +127,7 @@ export default function ListingsPage() {
       const { data: userData } = await supabase.auth.getUser()
       if (userData.user) {
         setCurrentUserId(userData.user.id)
+        setPayEnabled(paymentsEnabledFor(userData.user.email))
       }
 
       const { data, error } = await supabase
@@ -179,6 +184,29 @@ export default function ListingsPage() {
       return
     }
     router.push(`/messages/${sellerId}`)
+  }
+
+  async function handleBuy(listing) {
+    setBuyErrors((current) => ({ ...current, [listing.id]: '' }))
+    setBuyingId(listing.id)
+    try {
+      const { data } = await supabase.auth.getSession()
+      const token = data.session ? data.session.access_token : ''
+      const res = await fetch('/api/orders/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ listingId: String(listing.id) }),
+      })
+      const json = await res.json()
+      if (res.ok && json.url) {
+        window.location.href = json.url
+        return
+      }
+      setBuyErrors((current) => ({ ...current, [listing.id]: json.error || 'Could not start checkout.' }))
+    } catch (e) {
+      setBuyErrors((current) => ({ ...current, [listing.id]: 'Could not start checkout.' }))
+    }
+    setBuyingId(null)
   }
 
   async function handleMarkSold(listingId) {
@@ -348,6 +376,32 @@ export default function ListingsPage() {
                 </button>
               )}
             </div>
+            {currentUserId !== listing.user_id && payEnabled && canPayInApp(priceToCents(listing.price)) && (
+              <div style={{ marginTop: '12px' }}>
+                <button
+                  onClick={() => handleBuy(listing)}
+                  disabled={buyingId === listing.id}
+                  style={{
+                    width: '100%',
+                    backgroundColor: 'var(--color-black)',
+                    color: 'var(--color-white)',
+                    border: 'none',
+                    padding: '12px 18px',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    letterSpacing: '1px',
+                    textTransform: 'uppercase',
+                    cursor: buyingId === listing.id ? 'not-allowed' : 'pointer',
+                    opacity: buyingId === listing.id ? 0.6 : 1,
+                  }}
+                >
+                  {buyingId === listing.id ? 'Opening checkout...' : 'Buy securely'}
+                </button>
+                {buyErrors[listing.id] && (
+                  <p style={{ fontSize: '12px', color: '#B3261E', margin: '8px 0 0 0' }}>{buyErrors[listing.id]}</p>
+                )}
+              </div>
+            )}
             {currentUserId !== listing.user_id && (
               <div style={{ marginTop: '10px' }}>
                 <ReportButton

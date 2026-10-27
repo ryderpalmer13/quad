@@ -450,6 +450,12 @@ export default function ProfilePage() {
           <span style={{ color: '#9A8C7E' }}>›</span>
         </button>
         {showPayouts && (
+          <Link href="/orders" style={linkRow}>
+            <span>My orders</span>
+            <span style={{ color: '#9A8C7E' }}>›</span>
+          </Link>
+        )}
+        {showPayouts && (
           <Link href="/payouts" style={linkRow}>
             <span>Seller payouts</span>
             <span style={{ color: '#9A8C7E' }}>›</span>

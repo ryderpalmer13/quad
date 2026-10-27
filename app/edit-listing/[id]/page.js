@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { supabase } from '../../../utils.supabase.mjs'
 import Dropdown from '../../../components/Dropdown'
+import FeeNote from '../../../components/FeeNote'
 import { CATEGORIES, CATEGORY_OPTIONS, CONDITIONS, normalizeCondition } from '../../../components/listingOptions'
 
 
@@ -163,6 +164,7 @@ export default function EditListingPage() {
               required
               style={inputStyle}
             />
+          <FeeNote price={price} />
           </div>
           <button
             type="submit"
