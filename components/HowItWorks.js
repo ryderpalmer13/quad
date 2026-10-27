@@ -1,19 +1,30 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import Reveal from './Reveal'
+import { supabase } from '../utils.supabase.mjs'
+import { paymentsEnabledFor } from '../lib/payments'
 
 // compact: one small quiet line for the top of the Browse page.
 // full: the three steps for the home page, animated when scrolled into view.
 export default function HowItWorks({ compact = false }) {
+  const [paid, setPaid] = useState(paymentsEnabledFor(''))
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      setPaid(paymentsEnabledFor(data.user ? data.user.email : ''))
+    })
+  }, [])
+
   if (compact) {
     return (
       <p style={{ margin: '-8px 0 20px 0', fontSize: '13px', color: 'var(--color-gray)' }}>
-        Message seller. Meet up. Pay in person.
+        {paid ? 'Buy securely. Meet up. Share your code.' : 'Message seller. Meet up. Pay in person.'}
       </p>
     )
   }
 
-  const steps = ['Message seller', 'Meet up', 'Pay in person']
+  const steps = paid ? ['Buy securely', 'Meet up', 'Share your code'] : ['Message seller', 'Meet up', 'Pay in person']
 
   return (
     <section style={{ maxWidth: '1100px', margin: '56px auto 0 auto', padding: '0 24px' }}>
@@ -80,7 +91,9 @@ export default function HowItWorks({ compact = false }) {
             color: 'var(--color-gray)',
           }}
         >
-          No checkout. You pay the student directly when you meet.
+          {paid
+            ? 'Your payment is held safely until you hand over your code. The seller only gets paid when you meet.'
+            : 'No checkout. You pay the student directly when you meet.'}
         </p>
       </Reveal>
     </section>

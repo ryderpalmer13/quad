@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { supabase } from '../../utils.supabase.mjs'
 import Avatar from '../../components/Avatar'
-import { paymentsEnabledFor } from '../../lib/payments'
+import { paymentsEnabledFor, priceToCents, canPayInApp } from '../../lib/payments'
 
 // Crop to a centered square and shrink, so profile pictures stay small and load fast.
 function squarePhoto(file, size) {
@@ -430,9 +430,11 @@ export default function ProfilePage() {
             <Link href={`/edit-listing/${listing.id}`} style={{ ...smallLink, display: 'inline' }}>
               Edit
             </Link>
-            <button onClick={() => handleMarkSold(listing.id)} style={smallLink}>
-              Mark as sold
-            </button>
+            {!(showPayouts && canPayInApp(priceToCents(listing.price))) && (
+              <button onClick={() => handleMarkSold(listing.id)} style={smallLink}>
+                Mark as sold
+              </button>
+            )}
           </div>
         </div>
       ))}

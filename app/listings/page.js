@@ -178,12 +178,17 @@ export default function ListingsPage() {
     return Number(value) === 0 ? 'Free' : '$' + Number(value).toFixed(2)
   }
 
+  // For in app items, buyers message only after they buy. Small items are still arranged in person.
+  function inAppItem(listing) {
+    return payEnabled && canPayInApp(priceToCents(listing.price))
+  }
+
   function handleMessageSeller(sellerId) {
     if (!currentUserId) {
       router.push('/login')
       return
     }
-    router.push(`/messages/${sellerId}`)
+    router.push(`/messages/${sellerId}?small=1`)
   }
 
   async function handleBuy(listing) {
@@ -357,6 +362,10 @@ export default function ListingsPage() {
                 >
                   Your listing
                 </span>
+              ) : inAppItem(listing) ? (
+                <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', color: 'var(--color-gray)' }}>
+                  Payment protected
+                </span>
               ) : (
                 <button
                   onClick={() => handleMessageSeller(listing.user_id)}
@@ -376,7 +385,7 @@ export default function ListingsPage() {
                 </button>
               )}
             </div>
-            {currentUserId !== listing.user_id && payEnabled && canPayInApp(priceToCents(listing.price)) && (
+            {currentUserId !== listing.user_id && inAppItem(listing) && (
               <div style={{ marginTop: '12px' }}>
                 <button
                   onClick={() => handleBuy(listing)}
@@ -419,6 +428,7 @@ export default function ListingsPage() {
                 >
                   Edit
                 </Link>
+                {!inAppItem(listing) && (
                 <button
                   onClick={() => handleMarkSold(listing.id)}
                   style={{
@@ -433,6 +443,7 @@ export default function ListingsPage() {
                 >
                   Mark as sold
                 </button>
+                )}
               </div>
             )}
           </div>

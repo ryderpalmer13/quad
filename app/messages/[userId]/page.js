@@ -1,13 +1,20 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useParams } from 'next/navigation'
+import Link from 'next/link'
+import { useParams, useSearchParams } from 'next/navigation'
 import { supabase } from '../../../utils.supabase.mjs'
 import ReportButton from '../../../components/ReportButton'
+import { paymentsEnabledFor } from '../../../lib/payments'
 
 export default function ThreadPage() {
   const params = useParams()
   const otherUserId = params.userId
+  const searchParams = useSearchParams()
+  const smallItem = searchParams.get('small') === '1'
+  // Testers: messaging opens after an order. Everyone else is unchanged for now.
+  const [gated, setGated] = useState(false)
+  const [orderId, setOrderId] = useState(null)
 
   const [messages, setMessages] = useState([])
   const [loading, setLoading] = useState(true)
@@ -27,6 +34,21 @@ export default function ThreadPage() {
       }
 
       setCurrentUserId(userData.user.id)
+
+      if (paymentsEnabledFor(userData.user.email)) {
+        const { data: orderRows } = await supabase
+          .from('orders')
+          .select('id, status, buyer_id, seller_id')
+          .in('status', ['paid', 'completed'])
+          .order('created_at', { ascending: false })
+        const match = (orderRows || []).find(
+          (o) =>
+            (o.buyer_id === userData.user.id && o.seller_id === otherUserId) ||
+            (o.seller_id === userData.user.id && o.buyer_id === otherUserId)
+        )
+        setGated(!match)
+        setOrderId(match ? match.id : null)
+      }
 
       let profile = null
       const full = await supabase
@@ -143,7 +165,7 @@ export default function ThreadPage() {
       {!loading && (
         <>
           <div style={{ marginBottom: '24px' }}>
-            {messages.length === 0 && <p>No messages yet. Say hello!</p>}
+            {messages.length === 0 && !(gated && !smallItem) && <p>No messages yet. Say hello!</p>}
             {messages.map((message) => {
               const isMine = message.sender_id === currentUserId
               return (
@@ -171,8 +193,39 @@ export default function ThreadPage() {
             })}
           </div>
 
+          {gated && !smallItem ? (
+            <div
+              style={{
+                backgroundColor: 'var(--color-surface)',
+                border: '1px solid var(--color-hairline)',
+                borderRadius: '12px',
+                padding: '18px',
+                textAlign: 'center',
+              }}
+            >
+              <strong>Messaging opens after you buy.</strong>
+              <p style={{ margin: '8px 0 14px 0', fontSize: '14px', color: 'var(--color-gray)', lineHeight: 1.5 }}>
+                Buy the item securely first. Your payment is held safely, and then you can message the seller to set up
+                a meetup.
+              </p>
+              <Link href="/listings" style={{ color: 'var(--color-orange)', fontWeight: 600 }}>
+                Back to Browse
+              </Link>
+            </div>
+          ) : (
+          <>
           <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: 'var(--color-gray)' }}>
-            Meet in a public spot on campus and pay in person.
+            {orderId
+              ? 'Meet in a public spot on campus. Never pay outside the app, your payment is already held safely.'
+              : 'Meet in a public spot on campus and pay in person.'}
+            {orderId && (
+              <>
+                {' '}
+                <Link href={`/orders/${orderId}`} style={{ color: 'var(--color-orange)', fontWeight: 600 }}>
+                  View order
+                </Link>
+              </>
+            )}
           </p>
 
           <form onSubmit={handleSend} style={{ display: 'flex', gap: '12px' }}>
@@ -210,6 +263,8 @@ export default function ThreadPage() {
               Send
             </button>
           </form>
+          </>
+          )}
         </>
       )}
 

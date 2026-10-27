@@ -5,11 +5,14 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { supabase } from '../utils.supabase.mjs'
 import Avatar from './Avatar'
+import { paymentsEnabledFor } from '../lib/payments'
 
 export default function NavBar() {
   const [unreadCount, setUnreadCount] = useState(0)
   const [loggedIn, setLoggedIn] = useState(false)
   const [me, setMe] = useState(null)
+  const [showOrders, setShowOrders] = useState(false)
+  const [activeOrders, setActiveOrders] = useState(0)
   const pathname = usePathname() || ''
 
   useEffect(() => {
@@ -20,10 +23,21 @@ export default function NavBar() {
         setLoggedIn(false)
         setUnreadCount(0)
         setMe(null)
+        setShowOrders(false)
         return
       }
 
       setLoggedIn(true)
+
+      const ordersOn = paymentsEnabledFor(userData.user.email)
+      setShowOrders(ordersOn)
+      if (ordersOn) {
+        const { count: openOrders } = await supabase
+          .from('orders')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'paid')
+        setActiveOrders(openOrders || 0)
+      }
 
       const { count } = await supabase
         .from('messages')
@@ -88,6 +102,12 @@ export default function NavBar() {
           <Link href="/new-listing" className="nav-link">
             Sell
           </Link>
+          {showOrders && (
+            <Link href="/orders" className="nav-link">
+              Orders
+              {activeOrders > 0 && <span className="badge">{activeOrders}</span>}
+            </Link>
+          )}
           <Link href="/messages" className="nav-link">
             Messages
             {unreadCount > 0 && <span className="badge">{unreadCount}</span>}
@@ -136,6 +156,16 @@ export default function NavBar() {
           </svg>
           Sell
         </Link>
+        {showOrders && (
+          <Link href="/orders" className={tabClass('/orders')}>
+            <svg viewBox="0 0 24 24">
+              <path d="M6 7h12l-1 13H7z" />
+              <path d="M9 7a3 3 0 0 1 6 0" />
+            </svg>
+            Orders
+            {activeOrders > 0 && <span className="tab-badge">{activeOrders}</span>}
+          </Link>
+        )}
         <Link href="/messages" className={tabClass('/messages')}>
           <svg viewBox="0 0 24 24">
             <path d="M4 5h16v11H10l-4 4v-4H4z" />
