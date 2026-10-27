@@ -11,6 +11,10 @@ export default function OrderPage() {
   const router = useRouter()
   const orderId = params.id
   const [state, setState] = useState({ loading: true })
+  const [reloadKey, setReloadKey] = useState(0)
+  const [codeInput, setCodeInput] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [actionError, setActionError] = useState('')
 
   useEffect(() => {
     let cancelled = false
@@ -51,7 +55,7 @@ export default function OrderPage() {
     return () => {
       cancelled = true
     }
-  }, [orderId, router])
+  }, [orderId, router, reloadKey])
 
   const box = {
     backgroundColor: 'var(--color-surface)',
@@ -62,6 +66,47 @@ export default function OrderPage() {
   }
 
   const d = state.data
+
+  async function act(kind, body) {
+    setBusy(true)
+    setActionError('')
+    try {
+      const { data: sessionData } = await supabase.auth.getSession()
+      const token = sessionData.session ? sessionData.session.access_token : ''
+      const res = await fetch(`/api/orders/${orderId}/${kind}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify(body || {}),
+      })
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        setActionError(json.error || 'Something went wrong. Please try again.')
+      } else {
+        setCodeInput('')
+        setReloadKey((k) => k + 1)
+      }
+    } catch (e) {
+      setActionError('Something went wrong. Please try again.')
+    }
+    setBusy(false)
+  }
+
+  function cancelOrder() {
+    if (window.confirm('Cancel this order? The buyer is refunded in full and the item goes back on Browse.')) {
+      act('cancel')
+    }
+  }
+
+  const linkBtn = {
+    background: 'none',
+    border: 'none',
+    color: 'var(--color-gray)',
+    fontSize: '13px',
+    textDecoration: 'underline',
+    cursor: 'pointer',
+    display: 'block',
+    margin: '16px auto 0 auto',
+  }
 
   return (
     <div style={{ maxWidth: '480px', margin: '40px auto', padding: '0 24px' }}>
@@ -123,6 +168,12 @@ export default function OrderPage() {
               <p style={{ color: 'var(--color-gray)', fontSize: '12px', textAlign: 'center', marginTop: '12px' }}>
                 Meet in a public spot on campus.
               </p>
+              {actionError && <p style={{ color: '#B3261E', fontSize: '13px', textAlign: 'center' }}>{actionError}</p>}
+              {d.order.paidAt && Date.now() - new Date(d.order.paidAt).getTime() < 15 * 60000 && (
+                <button onClick={cancelOrder} disabled={busy} style={linkBtn}>
+                  Cancel and get a full refund (first 15 minutes)
+                </button>
+              )}
             </>
           )}
 
@@ -132,8 +183,50 @@ export default function OrderPage() {
                 <strong>The buyer has paid.</strong>
                 <p style={{ margin: '8px 0 0 0', color: 'var(--color-gray)', fontSize: '14px', lineHeight: 1.5 }}>
                   The money is held safely. Meet {d.otherName || 'the buyer'}, hand over the item, and ask for their
-                  6 digit code. You will enter it here to get paid.
+                  6 digit code. Only enter it once the item is in their hands.
                 </p>
+              </div>
+              <div style={box}>
+                <label style={{ fontSize: '12px', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', color: 'var(--color-gray)' }}>
+                  Buyer's code
+                </label>
+                <input
+                  value={codeInput}
+                  onChange={(e) => setCodeInput(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  inputMode="numeric"
+                  placeholder="000000"
+                  style={{
+                    display: 'block',
+                    width: '100%',
+                    boxSizing: 'border-box',
+                    fontSize: '28px',
+                    letterSpacing: '8px',
+                    textAlign: 'center',
+                    padding: '12px',
+                    margin: '10px 0',
+                    border: '1px solid var(--color-hairline)',
+                    borderRadius: '8px',
+                  }}
+                />
+                {actionError && <p style={{ color: '#B3261E', fontSize: '13px', margin: '0 0 10px 0' }}>{actionError}</p>}
+                <button
+                  onClick={() => act('confirm', { code: codeInput })}
+                  disabled={busy || codeInput.length !== 6}
+                  style={{
+                    width: '100%',
+                    backgroundColor: 'var(--color-orange)',
+                    color: 'var(--color-white)',
+                    padding: '14px',
+                    borderRadius: '8px',
+                    border: 'none',
+                    fontWeight: 600,
+                    fontSize: '15px',
+                    cursor: 'pointer',
+                    opacity: busy || codeInput.length !== 6 ? 0.5 : 1,
+                  }}
+                >
+                  {busy ? 'Working...' : `Confirm and get paid ${dollars(d.order.amountCents - d.order.feeCents)}`}
+                </button>
               </div>
               <Link
                 href={`/messages/${d.otherId}`}
@@ -149,6 +242,9 @@ export default function OrderPage() {
               >
                 Message {d.otherName || 'the buyer'} to set up a meetup
               </Link>
+              <button onClick={cancelOrder} disabled={busy} style={linkBtn}>
+                Cancel this sale and refund the buyer
+              </button>
             </>
           )}
 

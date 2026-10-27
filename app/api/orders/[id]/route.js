@@ -37,6 +37,8 @@ export async function GET(req, { params }) {
         amountCents: order.amount_cents,
         feeCents: order.fee_cents,
         createdAt: order.created_at,
+        paidAt: order.paid_at,
+        failedAttempts: order.failed_attempts,
       },
       role,
       otherId,
