@@ -13,6 +13,7 @@ const sections = [
       'Your display name and profile photo, if you add them',
       'The listings you post, including photos, descriptions, categories, and prices',
       'The messages you send and receive in the app',
+      'Orders you make or receive: the item, price, fee, status, and any problem you report on an order',
       'Reports you submit, and basic technical information needed to run the app',
     ],
   },
@@ -36,9 +37,16 @@ const sections = [
     ],
   },
   {
+    heading: 'Payments',
+    paragraphs: [
+      'Payments and seller payouts are handled by Stripe. When you pay, Stripe collects your card details directly. We never see or store your full card number. When a seller sets up payouts, Stripe collects identity and bank details, such as legal name, date of birth, address, and bank account, as required by law. We do not receive or store those details. We keep only a reference to the seller\'s Stripe account and whether payouts are ready.',
+      'The other student in an order can see your display name, the item, and the order status. They cannot see your payment details.',
+    ],
+  },
+  {
     heading: 'Services we use',
     paragraphs: [
-      'Agora U runs on trusted services that handle data on our behalf: Supabase (accounts, database, and photo storage), Vercel (hosting), and an email service that sends sign up and password reset emails. These providers only process data to help us run the app.',
+      'Agora U runs on trusted services that handle data on our behalf: Supabase (accounts, database, and photo storage), Vercel (hosting), Stripe (payments and payouts), and an email service that sends sign up and password reset emails. These providers only process data to help us run the app.',
     ],
   },
   {
@@ -50,7 +58,7 @@ const sections = [
   {
     heading: 'How long we keep it',
     paragraphs: [
-      'We keep your information while your account is active. If you ask us to delete your account, we will remove your profile and listings. Some records, like reports or messages involving safety issues, may be kept longer when needed.',
+      'We keep your information while your account is active. If you ask us to delete your account, we will remove your profile and listings. Some records, like reports, order and payment records, or messages involving safety issues, may be kept longer when needed, including to meet tax and legal requirements.',
     ],
   },
   {
@@ -79,7 +87,7 @@ export default function PrivacyPage() {
   return (
     <LegalPage
       title="Privacy Policy"
-      updated="October 19, 2026"
+      updated="October 27, 2026"
       intro="Your privacy matters. This page explains what Agora U collects, why, and who can see it."
       sections={sections}
     />

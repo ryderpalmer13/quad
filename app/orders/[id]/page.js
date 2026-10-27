@@ -15,6 +15,8 @@ export default function OrderPage() {
   const [codeInput, setCodeInput] = useState('')
   const [busy, setBusy] = useState(false)
   const [actionError, setActionError] = useState('')
+  const [reporting, setReporting] = useState(false)
+  const [reportText, setReportText] = useState('')
 
   useEffect(() => {
     let cancelled = false
@@ -107,6 +109,59 @@ export default function OrderPage() {
     display: 'block',
     margin: '16px auto 0 auto',
   }
+
+  const reportBox = d && d.order.status === 'paid' && (
+    <div style={{ marginTop: '8px' }}>
+      {!reporting ? (
+        <button onClick={() => setReporting(true)} style={linkBtn}>
+          Report a problem
+        </button>
+      ) : (
+        <div style={box}>
+          <strong style={{ fontSize: '14px' }}>What went wrong?</strong>
+          <p style={{ margin: '6px 0 10px 0', color: 'var(--color-gray)', fontSize: '13px', lineHeight: 1.5 }}>
+            The money stays held while we look into it. We will email you within 2 business days.
+          </p>
+          <textarea
+            value={reportText}
+            onChange={(e) => setReportText(e.target.value)}
+            rows={4}
+            maxLength={1000}
+            placeholder="Tell us what happened"
+            style={{
+              width: '100%',
+              boxSizing: 'border-box',
+              padding: '10px',
+              border: '1px solid var(--color-hairline)',
+              borderRadius: '8px',
+              fontFamily: 'Inter, sans-serif',
+              fontSize: '14px',
+              marginBottom: '10px',
+            }}
+          />
+          {actionError && <p style={{ color: '#B3261E', fontSize: '13px', margin: '0 0 10px 0' }}>{actionError}</p>}
+          <button
+            onClick={() => act('report', { reason: reportText })}
+            disabled={busy || reportText.trim().length < 5}
+            style={{
+              width: '100%',
+              backgroundColor: 'var(--color-black)',
+              color: 'var(--color-white)',
+              padding: '12px',
+              borderRadius: '8px',
+              border: 'none',
+              fontWeight: 600,
+              cursor: 'pointer',
+              opacity: busy || reportText.trim().length < 5 ? 0.5 : 1,
+            }}
+          >
+            {busy ? 'Sending...' : 'Send report'}
+          </button>
+        </div>
+      )}
+    </div>
+  )
+
 
   return (
     <div style={{ maxWidth: '480px', margin: '40px auto', padding: '0 24px' }}>
@@ -246,6 +301,25 @@ export default function OrderPage() {
                 Cancel this sale and refund the buyer
               </button>
             </>
+          )}
+
+          {d.order.status === 'paid' && (
+            <>
+              <p style={{ color: 'var(--color-gray)', fontSize: '12px', textAlign: 'center', margin: '14px 0 0 0' }}>
+                If the handoff does not happen within 14 days, the buyer is refunded automatically.
+              </p>
+              {reportBox}
+            </>
+          )}
+
+          {d.order.status === 'disputed' && (
+            <div style={box}>
+              <strong>Under review</strong>
+              <p style={{ margin: '8px 0 0 0', color: 'var(--color-gray)', fontSize: '14px', lineHeight: 1.5 }}>
+                A problem was reported on this order. The money stays held while we look into it. We will email both of
+                you within 2 business days.
+              </p>
+            </div>
           )}
 
           {d.order.status === 'completed' && (

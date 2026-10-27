@@ -24,6 +24,22 @@ export async function POST(req) {
     if (event.type === 'checkout.session.completed' || event.type === 'checkout.session.async_payment_succeeded') {
       await fulfillFromSession(event.data.object)
     }
+    if (event.type === 'charge.dispute.created') {
+      // A card chargeback. Freeze the order if the money has not been paid out yet.
+      const intent = event.data.object.payment_intent
+      const intentId = typeof intent === 'string' ? intent : intent ? intent.id : null
+      if (intentId) {
+        await getAdmin()
+          .from('orders')
+          .update({
+            status: 'disputed',
+            disputed_at: new Date().toISOString(),
+            dispute_reason: 'Card chargeback opened with the bank.',
+          })
+          .eq('stripe_payment_intent_id', intentId)
+          .eq('status', 'paid')
+      }
+    }
     if (event.type === 'checkout.session.expired') {
       const orderId = event.data.object.metadata ? event.data.object.metadata.order_id : null
       if (orderId) {

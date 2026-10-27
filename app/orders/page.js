@@ -9,6 +9,7 @@ import { paymentsEnabledFor, dollars } from '../../lib/payments'
 const STATUS_LABELS = {
   pending: 'Waiting for payment',
   paid: 'Paid, held safely',
+  disputed: 'Under review',
   completed: 'Completed',
   refunded: 'Refunded',
   cancelled: 'Cancelled',
@@ -27,8 +28,8 @@ const EMPTY = {
 }
 
 const TAB_FILTERS = (userId) => ({
-  buying: (o) => o.buyer_id === userId && (o.status === 'pending' || o.status === 'paid'),
-  selling: (o) => o.seller_id === userId && o.status === 'paid',
+  buying: (o) => o.buyer_id === userId && (o.status === 'pending' || o.status === 'paid' || o.status === 'disputed'),
+  selling: (o) => o.seller_id === userId && (o.status === 'paid' || o.status === 'disputed'),
   completed: (o) => o.status === 'completed' || o.status === 'refunded',
 })
 
