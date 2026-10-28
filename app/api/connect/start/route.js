@@ -12,6 +12,7 @@ async function createSellerAccount(stripe, user) {
     business_type: 'individual',
     business_profile: {
       url: 'https://agorau.app',
+      mcc: '5399',
       product_description: 'Selling used items to other students on Agora U',
     },
     controller: {
