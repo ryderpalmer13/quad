@@ -26,6 +26,12 @@ export async function GET(req, { params }) {
       code = secret ? secret.code : null
     }
 
+    let review = null
+    if (order.status === 'completed') {
+      const { data: r } = await admin.from('reviews').select('rating, comment').eq('order_id', order.id).maybeSingle()
+      review = r || null
+    }
+
     const otherId = role === 'buyer' ? order.seller_id : order.buyer_id
     const { data: other } = await admin.from('profiles').select('display_name').eq('id', otherId).maybeSingle()
 
@@ -44,6 +50,7 @@ export async function GET(req, { params }) {
       otherId,
       otherName: other && other.display_name ? other.display_name : null,
       code,
+      review,
     })
   } catch (err) {
     console.error('orders/get failed:', err)

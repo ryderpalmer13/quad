@@ -17,6 +17,8 @@ export default function OrderPage() {
   const [actionError, setActionError] = useState('')
   const [reporting, setReporting] = useState(false)
   const [reportText, setReportText] = useState('')
+  const [stars, setStars] = useState(0)
+  const [reviewText, setReviewText] = useState('')
 
   useEffect(() => {
     let cancelled = false
@@ -330,6 +332,77 @@ export default function OrderPage() {
                   ? `You were paid ${dollars(d.order.amountCents - d.order.feeCents)}.`
                   : 'The seller has been paid. Enjoy your item.'}
               </p>
+            </div>
+          )}
+
+          {d.order.status === 'completed' && d.role === 'buyer' && d.review && (
+            <div style={box}>
+              <strong>Your review</strong>
+              <div style={{ color: 'var(--color-orange)', fontSize: '20px', margin: '6px 0' }}>
+                {'★'.repeat(d.review.rating)}
+                <span style={{ opacity: 0.3 }}>{'★'.repeat(5 - d.review.rating)}</span>
+              </div>
+              {d.review.comment && <p style={{ margin: 0, fontSize: '14px', color: 'var(--color-gray)' }}>{d.review.comment}</p>}
+            </div>
+          )}
+
+          {d.order.status === 'completed' && d.role === 'buyer' && !d.review && (
+            <div style={box}>
+              <strong>How was {d.otherName || 'the seller'}?</strong>
+              <div style={{ display: 'flex', gap: '6px', margin: '10px 0' }}>
+                {[1, 2, 3, 4, 5].map((n) => (
+                  <button
+                    key={n}
+                    onClick={() => setStars(n)}
+                    aria-label={`${n} stars`}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      padding: 0,
+                      fontSize: '34px',
+                      cursor: 'pointer',
+                      color: n <= stars ? 'var(--color-orange)' : 'var(--color-hairline)',
+                    }}
+                  >
+                    ★
+                  </button>
+                ))}
+              </div>
+              <textarea
+                value={reviewText}
+                onChange={(e) => setReviewText(e.target.value)}
+                rows={3}
+                maxLength={500}
+                placeholder="Optional: say a little about the sale"
+                style={{
+                  width: '100%',
+                  boxSizing: 'border-box',
+                  padding: '10px',
+                  border: '1px solid var(--color-hairline)',
+                  borderRadius: '8px',
+                  fontFamily: 'Inter, sans-serif',
+                  fontSize: '14px',
+                  marginBottom: '10px',
+                }}
+              />
+              {actionError && <p style={{ color: '#B3261E', fontSize: '13px', margin: '0 0 10px 0' }}>{actionError}</p>}
+              <button
+                onClick={() => act('review', { rating: stars, comment: reviewText })}
+                disabled={busy || stars === 0}
+                style={{
+                  width: '100%',
+                  backgroundColor: 'var(--color-orange)',
+                  color: 'var(--color-white)',
+                  padding: '12px',
+                  borderRadius: '8px',
+                  border: 'none',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  opacity: busy || stars === 0 ? 0.5 : 1,
+                }}
+              >
+                {busy ? 'Sending...' : 'Submit review'}
+              </button>
             </div>
           )}
 

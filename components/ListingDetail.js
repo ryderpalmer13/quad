@@ -7,6 +7,7 @@ import { supabase } from '../utils.supabase.mjs'
 import Avatar from './Avatar'
 import ReportButton from './ReportButton'
 import BlockButton from './BlockButton'
+import Stars, { summarize } from './Stars'
 import { paymentsEnabledFor, priceToCents, canPayInApp } from '../lib/payments'
 
 function photosOf(listing) {
@@ -19,6 +20,7 @@ export default function ListingDetail({ id, initial }) {
   const [listing, setListing] = useState(initial)
   const [loaded, setLoaded] = useState(Boolean(initial))
   const [seller, setSeller] = useState(null)
+  const [rating, setRating] = useState(null)
   const [me, setMe] = useState(null)
   const [payEnabled, setPayEnabled] = useState(false)
   const [index, setIndex] = useState(0)
@@ -50,6 +52,11 @@ export default function ListingDetail({ id, initial }) {
           .eq('id', item.user_id)
           .maybeSingle()
         setSeller(profile || null)
+        const { data: reviewRows } = await supabase
+          .from('reviews')
+          .select('seller_id, rating')
+          .eq('seller_id', item.user_id)
+        setRating(summarize(reviewRows)[item.user_id] || { average: 0, count: 0 })
 
         if (userData.user) {
           const { data: blockRow } = await supabase
@@ -217,8 +224,14 @@ export default function ListingDetail({ id, initial }) {
           {seller && seller.display_name && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '0 0 20px 0', fontSize: '14px' }}>
               <Avatar url={seller.avatar_url} name={seller.display_name} size={32} />
-              <span>
-                Sold by <strong>{seller.display_name}</strong>
+              <span style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                <span>
+                  Sold by{' '}
+                  <Link href={`/sellers/${listing.user_id}`} style={{ fontWeight: 700, textDecoration: 'underline' }}>
+                    {seller.display_name}
+                  </Link>
+                </span>
+                {rating && <Stars average={rating.average} count={rating.count} />}
               </span>
             </div>
           )}

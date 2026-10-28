@@ -8,6 +8,7 @@ import Avatar from '../../components/Avatar'
 import ReportButton from '../../components/ReportButton'
 import BlockButton from '../../components/BlockButton'
 import HowItWorks from '../../components/HowItWorks'
+import Stars, { summarize } from '../../components/Stars'
 import { CATEGORIES } from '../../components/listingOptions'
 import { paymentsEnabledFor, priceToCents, canPayInApp } from '../../lib/payments'
 
@@ -133,6 +134,7 @@ export default function ListingsPage() {
   const [buyErrors, setBuyErrors] = useState({})
   const [sellers, setSellers] = useState({})
   const [blockedIds, setBlockedIds] = useState([])
+  const [ratings, setRatings] = useState({})
   const router = useRouter()
 
   useEffect(() => {
@@ -175,6 +177,12 @@ export default function ListingsPage() {
             .from('profiles')
             .select('id, display_name, avatar_url')
             .in('id', sellerIds)
+
+          const { data: reviewRows } = await supabase
+            .from('reviews')
+            .select('seller_id, rating')
+            .in('seller_id', sellerIds)
+          setRatings(summarize(reviewRows))
 
           if (!profileError && profileRows) {
             const lookup = {}
@@ -448,7 +456,16 @@ export default function ListingsPage() {
                   name={sellers[listing.user_id].display_name}
                   size={24}
                 />
-                <span>{sellers[listing.user_id].display_name}</span>
+                <span style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
+                  <Link href={`/sellers/${listing.user_id}`} style={{ color: 'inherit' }}>
+                    {sellers[listing.user_id].display_name}
+                  </Link>
+                  <Stars
+                    average={ratings[listing.user_id] ? ratings[listing.user_id].average : 0}
+                    count={ratings[listing.user_id] ? ratings[listing.user_id].count : 0}
+                    size={12}
+                  />
+                </span>
               </div>
             )}
             <div
