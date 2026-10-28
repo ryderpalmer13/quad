@@ -8,10 +8,24 @@ import Avatar from '../../components/Avatar'
 import ReportButton from '../../components/ReportButton'
 import BlockButton from '../../components/BlockButton'
 import HowItWorks from '../../components/HowItWorks'
-import { CATEGORIES } from '../../components/listingOptions'
+import { CATEGORIES, CONDITIONS, normalizeCondition } from '../../components/listingOptions'
 import { paymentsEnabledFor, priceToCents, canPayInApp } from '../../lib/payments'
 
 const FILTER_CATEGORIES = ['All', ...CATEGORIES]
+
+const filterField = {
+  padding: '10px 6px',
+  fontSize: '14px',
+  border: 'none',
+  borderBottom: '2px solid var(--color-hairline)',
+  fontFamily: 'Inter, sans-serif',
+  outline: 'none',
+  backgroundColor: 'transparent',
+  textTransform: 'none',
+  letterSpacing: 'normal',
+  fontWeight: 400,
+  color: 'var(--color-black)',
+}
 
 function PhotoCarousel({ photos, alt }) {
   const [index, setIndex] = useState(0)
@@ -110,6 +124,10 @@ export default function ListingsPage() {
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('All')
+  const [conditionFilter, setConditionFilter] = useState('All')
+  const [sortBy, setSortBy] = useState('newest')
+  const [minPrice, setMinPrice] = useState('')
+  const [maxPrice, setMaxPrice] = useState('')
   const [currentUserId, setCurrentUserId] = useState(null)
   const [payEnabled, setPayEnabled] = useState(false)
   const [buyingId, setBuyingId] = useState(null)
@@ -174,11 +192,36 @@ export default function ListingsPage() {
     fetchListings()
   }, [])
 
-  const filteredListings = listings.filter((listing) => {
-    const matchesSearch = listing.title.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesCategory = categoryFilter === 'All' || listing.category === categoryFilter
-    return matchesSearch && matchesCategory && !blockedIds.includes(listing.user_id)
-  })
+  const lowest = minPrice === '' ? null : Number(minPrice)
+  const highest = maxPrice === '' ? null : Number(maxPrice)
+
+  const filteredListings = listings
+    .filter((listing) => {
+      const matchesSearch = listing.title.toLowerCase().includes(searchTerm.toLowerCase())
+      const matchesCategory = categoryFilter === 'All' || listing.category === categoryFilter
+      const matchesCondition =
+        conditionFilter === 'All' || normalizeCondition(listing.condition) === conditionFilter
+      const price = Number(listing.price)
+      const matchesPrice = (lowest === null || price >= lowest) && (highest === null || price <= highest)
+      return matchesSearch && matchesCategory && matchesCondition && matchesPrice && !blockedIds.includes(listing.user_id)
+    })
+    .sort((a, b) => {
+      if (sortBy === 'low') return Number(a.price) - Number(b.price)
+      if (sortBy === 'high') return Number(b.price) - Number(a.price)
+      return new Date(b.created_at) - new Date(a.created_at)
+    })
+
+  const filtersActive =
+    categoryFilter !== 'All' || conditionFilter !== 'All' || minPrice !== '' || maxPrice !== '' || searchTerm !== ''
+
+  function clearFilters() {
+    setSearchTerm('')
+    setCategoryFilter('All')
+    setConditionFilter('All')
+    setMinPrice('')
+    setMaxPrice('')
+    setSortBy('newest')
+  }
 
   function getPhotos(listing) {
     if (listing.photo_urls && listing.photo_urls.length > 0) return listing.photo_urls
@@ -245,7 +288,7 @@ export default function ListingsPage() {
 
       <HowItWorks compact />
 
-      <div style={{ display: 'flex', gap: '20px', marginBottom: '24px', alignItems: 'flex-end' }}>
+      <div style={{ display: 'flex', gap: '20px', marginBottom: '16px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
         <input
           type="text"
           placeholder="Search listings..."
@@ -282,6 +325,75 @@ export default function ListingsPage() {
         </select>
       </div>
 
+      <div style={{ display: 'flex', gap: '14px', marginBottom: '24px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+        {[
+          {
+            label: 'Sort',
+            node: (
+              <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} style={filterField}>
+                <option value="newest">Newest</option>
+                <option value="low">Price: low to high</option>
+                <option value="high">Price: high to low</option>
+              </select>
+            ),
+          },
+          {
+            label: 'Condition',
+            node: (
+              <select value={conditionFilter} onChange={(e) => setConditionFilter(e.target.value)} style={filterField}>
+                <option value="All">Any condition</option>
+                {CONDITIONS.map((c) => (
+                  <option key={c.value} value={c.value}>
+                    {c.label}
+                  </option>
+                ))}
+              </select>
+            ),
+          },
+          {
+            label: 'Min price',
+            node: (
+              <input
+                type="number"
+                min="0"
+                inputMode="decimal"
+                placeholder="$0"
+                value={minPrice}
+                onChange={(e) => setMinPrice(e.target.value)}
+                style={{ ...filterField, width: '84px' }}
+              />
+            ),
+          },
+          {
+            label: 'Max price',
+            node: (
+              <input
+                type="number"
+                min="0"
+                inputMode="decimal"
+                placeholder="Any"
+                value={maxPrice}
+                onChange={(e) => setMaxPrice(e.target.value)}
+                style={{ ...filterField, width: '84px' }}
+              />
+            ),
+          },
+        ].map((f) => (
+          <label key={f.label} style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '11px', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', color: 'var(--color-gray)' }}>
+            {f.label}
+            {f.node}
+          </label>
+        ))}
+        {filtersActive && (
+          <button
+            onClick={clearFilters}
+            style={{ background: 'none', border: 'none', padding: '0 0 8px 0', fontSize: '12px', color: 'var(--color-black)', textDecoration: 'underline', cursor: 'pointer' }}
+          >
+            Clear filters
+          </button>
+        )}
+      </div>
+
       {loading && (
         <div
           style={{
@@ -300,7 +412,9 @@ export default function ListingsPage() {
         </div>
       )}
 
-      {!loading && filteredListings.length === 0 && <p>No listings found.</p>}
+      {!loading && filteredListings.length === 0 && (
+        <p>{filtersActive ? 'No listings match those filters.' : 'No listings found.'}</p>
+      )}
 
       <div
         style={{
