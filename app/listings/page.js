@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '../../utils.supabase.mjs'
 import Avatar from '../../components/Avatar'
 import HowItWorks from '../../components/HowItWorks'
+import PayoutPrompt from '../../components/PayoutPrompt'
 import Stars, { summarize } from '../../components/Stars'
 import { CATEGORIES } from '../../components/listingOptions'
 import { paymentsEnabledFor, priceToCents, canPayInApp } from '../../lib/payments'
@@ -183,6 +184,10 @@ export default function ListingsPage() {
       <h1 style={{ fontSize: 'clamp(24px, 6vw, 30px)', margin: '0 0 8px 0', color: 'var(--color-black)' }}>Browse</h1>
 
       <HowItWorks compact />
+
+      <div style={{ maxWidth: '640px' }}>
+        <PayoutPrompt />
+      </div>
 
       <div style={{ maxWidth: '640px' }}>
       <input

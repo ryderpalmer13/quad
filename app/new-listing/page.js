@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { supabase } from '../../utils.supabase.mjs'
 import Dropdown from '../../components/Dropdown'
 import FeeNote from '../../components/FeeNote'
+import PayoutPrompt from '../../components/PayoutPrompt'
 import { CATEGORIES, CATEGORY_OPTIONS, CONDITIONS, normalizeCondition } from '../../components/listingOptions'
 
 const MAX_PHOTOS = 4
@@ -213,6 +214,11 @@ export default function NewListingPage() {
   return (
     <div style={{ maxWidth: '440px', margin: '48px auto', padding: '0 24px' }}>
       <h1 style={{ fontSize: '28px', marginBottom: '32px' }}>Sell an Item</h1>
+      {message === 'Listing posted!' ? (
+        <PayoutPrompt strong title="Your listing is live. Get ready to be paid." body="When someone buys, the money goes to you through payouts. Set it up now so you are ready, it takes about 3 minutes." />
+      ) : (
+        <PayoutPrompt />
+      )}
       <form onSubmit={handleCreateListing}>
         <div style={{ marginBottom: '24px' }}>
           <label style={labelStyle}>Title</label>
