@@ -311,7 +311,9 @@ export default function ListingsPage() {
       >
         {filteredListings.map((listing) => (
           <div key={listing.id} className="listing-card">
-            <PhotoCarousel photos={getPhotos(listing)} alt={listing.title} />
+            <Link href={`/listings/${listing.id}`} style={{ display: 'block' }}>
+              <PhotoCarousel photos={getPhotos(listing)} alt={listing.title} />
+            </Link>
             <p
               style={{
                 fontSize: '10px',
@@ -326,7 +328,9 @@ export default function ListingsPage() {
               {listing.condition ? ` · ${listing.condition}` : ''}
             </p>
             <h2 style={{ fontSize: '16px', fontWeight: 600, margin: '0 0 6px 0' }}>
-              {listing.title}
+              <Link href={`/listings/${listing.id}`} style={{ color: 'inherit' }}>
+                {listing.title}
+              </Link>
             </h2>
             <p style={{ margin: '0 0 10px 0', color: 'var(--color-gray)', fontSize: '13px' }}>
               {listing.description}
