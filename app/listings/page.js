@@ -2,11 +2,13 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { supabase } from '../../utils.supabase.mjs'
 import Avatar from '../../components/Avatar'
 import HowItWorks from '../../components/HowItWorks'
 import Stars, { summarize } from '../../components/Stars'
 import { CATEGORIES } from '../../components/listingOptions'
+import { paymentsEnabledFor, priceToCents, canPayInApp } from '../../lib/payments'
 
 const FILTER_CATEGORIES = ['All', ...CATEGORIES]
 
@@ -44,6 +46,10 @@ export default function ListingsPage() {
   const [sellers, setSellers] = useState({})
   const [blockedIds, setBlockedIds] = useState([])
   const [ratings, setRatings] = useState({})
+  const [payEnabled, setPayEnabled] = useState(false)
+  const [buyingId, setBuyingId] = useState(null)
+  const [buyErrors, setBuyErrors] = useState({})
+  const router = useRouter()
 
   useEffect(() => {
     // Category chips on the home page link here with ?category=Furniture
@@ -56,6 +62,7 @@ export default function ListingsPage() {
       const { data: userData } = await supabase.auth.getUser()
       if (userData.user) {
         setCurrentUserId(userData.user.id)
+        setPayEnabled(paymentsEnabledFor(userData.user.email))
         const { data: blockRows } = await supabase
           .from('blocks')
           .select('blocked_id')
@@ -123,6 +130,52 @@ export default function ListingsPage() {
     setMinPrice('')
     setMaxPrice('')
     setSortBy('newest')
+  }
+
+  function inAppItem(listing) {
+    return payEnabled && canPayInApp(priceToCents(listing.price))
+  }
+
+  async function handleBuy(listing) {
+    if (!currentUserId) {
+      router.push('/login')
+      return
+    }
+    setBuyErrors((current) => ({ ...current, [listing.id]: '' }))
+    setBuyingId(listing.id)
+    try {
+      const { data } = await supabase.auth.getSession()
+      const token = data.session ? data.session.access_token : ''
+      const res = await fetch('/api/orders/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ listingId: String(listing.id) }),
+      })
+      const json = await res.json()
+      if (res.ok && json.url) {
+        window.location.href = json.url
+        return
+      }
+      setBuyErrors((current) => ({ ...current, [listing.id]: json.error || 'Could not start checkout.' }))
+    } catch (e) {
+      setBuyErrors((current) => ({ ...current, [listing.id]: 'Could not start checkout.' }))
+    }
+    setBuyingId(null)
+  }
+
+  const smallButton = {
+    width: '100%',
+    marginTop: '10px',
+    backgroundColor: 'var(--color-orange)',
+    color: 'var(--color-white)',
+    border: 'none',
+    borderRadius: '999px',
+    padding: '9px 12px',
+    fontSize: '12px',
+    fontWeight: 700,
+    letterSpacing: '0.8px',
+    textTransform: 'uppercase',
+    cursor: 'pointer',
   }
 
   return (
@@ -211,7 +264,8 @@ export default function ListingsPage() {
           const seller = sellers[listing.user_id]
           const rating = ratings[listing.user_id]
           return (
-            <Link key={listing.id} href={`/listings/${listing.id}`} className="tile">
+            <div key={listing.id} className="tile">
+            <Link href={`/listings/${listing.id}`} className="tile">
               <div className="tile-photo">
                 {photo && <img src={photo} alt={listing.title} loading="lazy" />}
                 {currentUserId === listing.user_id && (
@@ -248,6 +302,20 @@ export default function ListingsPage() {
                 </div>
               )}
             </Link>
+            {currentUserId !== listing.user_id &&
+              (inAppItem(listing) ? (
+                <button onClick={() => handleBuy(listing)} disabled={buyingId === listing.id} style={{ ...smallButton, opacity: buyingId === listing.id ? 0.6 : 1 }}>
+                  {buyingId === listing.id ? 'Opening...' : 'Buy'}
+                </button>
+              ) : (
+                <button onClick={() => (currentUserId ? router.push(`/messages/${listing.user_id}?small=1`) : router.push('/login'))} style={smallButton}>
+                  Buy
+                </button>
+              ))}
+            {buyErrors[listing.id] && (
+              <p style={{ fontSize: '12px', color: '#B3261E', margin: '6px 0 0 0' }}>{buyErrors[listing.id]}</p>
+            )}
+            </div>
           )
         })}
       </div>
