@@ -32,10 +32,13 @@ export default function MessagesPage() {
         return
       }
 
+      const { data: blockRows } = await supabase.from('blocks').select('blocked_id').eq('blocker_id', myId)
+      const blocked = new Set((blockRows || []).map((b) => b.blocked_id))
+
       const otherIds = new Set()
       messages.forEach((message) => {
         const otherId = message.sender_id === myId ? message.receiver_id : message.sender_id
-        otherIds.add(otherId)
+        if (!blocked.has(otherId)) otherIds.add(otherId)
       })
 
       const conversationList = []

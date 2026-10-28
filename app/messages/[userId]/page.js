@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useParams, useSearchParams } from 'next/navigation'
 import { supabase } from '../../../utils.supabase.mjs'
 import ReportButton from '../../../components/ReportButton'
+import BlockButton from '../../../components/BlockButton'
 import { paymentsEnabledFor } from '../../../lib/payments'
 
 export default function ThreadPage() {
@@ -15,6 +16,7 @@ export default function ThreadPage() {
   // Testers: messaging opens after an order. Everyone else is unchanged for now.
   const [gated, setGated] = useState(false)
   const [orderId, setOrderId] = useState(null)
+  const [blocked, setBlocked] = useState(false)
 
   const [messages, setMessages] = useState([])
   const [loading, setLoading] = useState(true)
@@ -34,6 +36,14 @@ export default function ThreadPage() {
       }
 
       setCurrentUserId(userData.user.id)
+
+      const { data: blockRow } = await supabase
+        .from('blocks')
+        .select('blocked_id')
+        .eq('blocker_id', userData.user.id)
+        .eq('blocked_id', otherUserId)
+        .maybeSingle()
+      setBlocked(!!blockRow)
 
       if (paymentsEnabledFor(userData.user.email)) {
         const { data: orderRows } = await supabase
@@ -115,7 +125,11 @@ export default function ThreadPage() {
     })
 
     if (error) {
-      setStatusMessage(error.message)
+      setStatusMessage(
+        String(error.message).toLowerCase().includes('row-level security')
+          ? 'You cannot message this person.'
+          : error.message
+      )
     } else {
       setContent('')
       const { data } = await supabase
@@ -145,7 +159,12 @@ export default function ThreadPage() {
         <h1 style={{ fontSize: '22px', margin: 0, fontWeight: 600 }}>
           {otherEmail || 'Conversation'}
         </h1>
-        {currentUserId && <ReportButton reportedUserId={String(otherUserId)} label="Report" />}
+        {currentUserId && (
+          <span style={{ display: 'flex', gap: '14px', alignItems: 'baseline' }}>
+            {!blocked && <BlockButton userId={otherUserId} onBlocked={() => setBlocked(true)} />}
+            <ReportButton reportedUserId={String(otherUserId)} label="Report" />
+          </span>
+        )}
       </div>
 
       {loading && (
@@ -193,7 +212,38 @@ export default function ThreadPage() {
             })}
           </div>
 
-          {gated && !smallItem ? (
+          {blocked ? (
+            <div
+              style={{
+                backgroundColor: 'var(--color-surface)',
+                border: '1px solid var(--color-hairline)',
+                borderRadius: '12px',
+                padding: '18px',
+                textAlign: 'center',
+              }}
+            >
+              <strong>You blocked this person.</strong>
+              <p style={{ margin: '8px 0 14px 0', fontSize: '14px', color: 'var(--color-gray)' }}>
+                You cannot message each other.
+              </p>
+              <button
+                onClick={async () => {
+                  await supabase.from('blocks').delete().eq('blocker_id', currentUserId).eq('blocked_id', otherUserId)
+                  setBlocked(false)
+                }}
+                style={{
+                  background: 'none',
+                  border: '1px solid var(--color-hairline)',
+                  borderRadius: '999px',
+                  padding: '8px 16px',
+                  cursor: 'pointer',
+                  fontSize: '13px',
+                }}
+              >
+                Unblock
+              </button>
+            </div>
+          ) : gated && !smallItem ? (
             <div
               style={{
                 backgroundColor: 'var(--color-surface)',

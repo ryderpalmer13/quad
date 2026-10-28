@@ -64,7 +64,7 @@ const sections = [
   {
     heading: 'Your choices',
     paragraphs: [
-      'You can edit your name and photo anytime from your Profile, and mark or edit your listings. To delete your account or ask a question about your data, email hello@agorau.app.',
+      'You can edit your name and photo anytime from your Profile, and mark or edit your listings. You can block other members and delete your account yourself from your Profile. Deleting your account removes your profile, listings, photos, and messages. For questions about your data, email hello@agorau.app.',
     ],
   },
   {

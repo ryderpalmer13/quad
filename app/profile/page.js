@@ -463,6 +463,10 @@ export default function ProfilePage() {
             <span style={{ color: '#9A8C7E' }}>›</span>
           </Link>
         )}
+        <Link href="/blocked" style={linkRow}>
+          <span>Blocked users</span>
+          <span style={{ color: '#9A8C7E' }}>›</span>
+        </Link>
         <Link href="/terms" style={linkRow}>
           <span>Terms of Service</span>
           <span style={{ color: '#9A8C7E' }}>›</span>
@@ -475,6 +479,10 @@ export default function ProfilePage() {
           <span>Log out</span>
           <span style={{ color: '#9A8C7E' }}>›</span>
         </button>
+        <Link href="/delete-account" style={{ ...linkRow, color: '#B3261E' }}>
+          <span>Delete account</span>
+          <span style={{ color: '#9A8C7E' }}>›</span>
+        </Link>
       </div>
     </div>
   )

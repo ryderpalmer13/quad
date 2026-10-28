@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '../../utils.supabase.mjs'
 import Avatar from '../../components/Avatar'
 import ReportButton from '../../components/ReportButton'
+import BlockButton from '../../components/BlockButton'
 import HowItWorks from '../../components/HowItWorks'
 import { CATEGORIES } from '../../components/listingOptions'
 import { paymentsEnabledFor, priceToCents, canPayInApp } from '../../lib/payments'
@@ -114,6 +115,7 @@ export default function ListingsPage() {
   const [buyingId, setBuyingId] = useState(null)
   const [buyErrors, setBuyErrors] = useState({})
   const [sellers, setSellers] = useState({})
+  const [blockedIds, setBlockedIds] = useState([])
   const router = useRouter()
 
   useEffect(() => {
@@ -128,6 +130,16 @@ export default function ListingsPage() {
       if (userData.user) {
         setCurrentUserId(userData.user.id)
         setPayEnabled(paymentsEnabledFor(userData.user.email))
+      }
+
+      let blockedList = []
+      if (userData.user) {
+        const { data: blockRows } = await supabase
+          .from('blocks')
+          .select('blocked_id')
+          .eq('blocker_id', userData.user.id)
+        blockedList = (blockRows || []).map((b) => b.blocked_id)
+        setBlockedIds(blockedList)
       }
 
       const { data, error } = await supabase
@@ -165,7 +177,7 @@ export default function ListingsPage() {
   const filteredListings = listings.filter((listing) => {
     const matchesSearch = listing.title.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesCategory = categoryFilter === 'All' || listing.category === categoryFilter
-    return matchesSearch && matchesCategory
+    return matchesSearch && matchesCategory && !blockedIds.includes(listing.user_id)
   })
 
   function getPhotos(listing) {
@@ -412,11 +424,16 @@ export default function ListingsPage() {
               </div>
             )}
             {currentUserId !== listing.user_id && (
-              <div style={{ marginTop: '10px' }}>
+              <div style={{ marginTop: '10px', display: 'flex', gap: '16px', alignItems: 'baseline' }}>
                 <ReportButton
                   listingId={String(listing.id)}
                   reportedUserId={String(listing.user_id)}
                   label="Report listing"
+                />
+                <BlockButton
+                  userId={listing.user_id}
+                  label="Block seller"
+                  onBlocked={() => setBlockedIds((current) => [...current, listing.user_id])}
                 />
               </div>
             )}
