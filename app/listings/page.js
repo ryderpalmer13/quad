@@ -8,7 +8,7 @@ import Avatar from '../../components/Avatar'
 import ReportButton from '../../components/ReportButton'
 import BlockButton from '../../components/BlockButton'
 import HowItWorks from '../../components/HowItWorks'
-import { CATEGORIES, CONDITIONS, normalizeCondition } from '../../components/listingOptions'
+import { CATEGORIES } from '../../components/listingOptions'
 import { paymentsEnabledFor, priceToCents, canPayInApp } from '../../lib/payments'
 
 const FILTER_CATEGORIES = ['All', ...CATEGORIES]
@@ -124,7 +124,6 @@ export default function ListingsPage() {
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('All')
-  const [conditionFilter, setConditionFilter] = useState('All')
   const [sortBy, setSortBy] = useState('newest')
   const [minPrice, setMinPrice] = useState('')
   const [maxPrice, setMaxPrice] = useState('')
@@ -199,11 +198,9 @@ export default function ListingsPage() {
     .filter((listing) => {
       const matchesSearch = listing.title.toLowerCase().includes(searchTerm.toLowerCase())
       const matchesCategory = categoryFilter === 'All' || listing.category === categoryFilter
-      const matchesCondition =
-        conditionFilter === 'All' || normalizeCondition(listing.condition) === conditionFilter
       const price = Number(listing.price)
       const matchesPrice = (lowest === null || price >= lowest) && (highest === null || price <= highest)
-      return matchesSearch && matchesCategory && matchesCondition && matchesPrice && !blockedIds.includes(listing.user_id)
+      return matchesSearch && matchesCategory && matchesPrice && !blockedIds.includes(listing.user_id)
     })
     .sort((a, b) => {
       if (sortBy === 'low') return Number(a.price) - Number(b.price)
@@ -212,12 +209,11 @@ export default function ListingsPage() {
     })
 
   const filtersActive =
-    categoryFilter !== 'All' || conditionFilter !== 'All' || minPrice !== '' || maxPrice !== '' || searchTerm !== ''
+    categoryFilter !== 'All' || minPrice !== '' || maxPrice !== '' || searchTerm !== ''
 
   function clearFilters() {
     setSearchTerm('')
     setCategoryFilter('All')
-    setConditionFilter('All')
     setMinPrice('')
     setMaxPrice('')
     setSortBy('newest')
@@ -334,19 +330,6 @@ export default function ListingsPage() {
                 <option value="newest">Newest</option>
                 <option value="low">Price: low to high</option>
                 <option value="high">Price: high to low</option>
-              </select>
-            ),
-          },
-          {
-            label: 'Condition',
-            node: (
-              <select value={conditionFilter} onChange={(e) => setConditionFilter(e.target.value)} style={filterField}>
-                <option value="All">Any condition</option>
-                {CONDITIONS.map((c) => (
-                  <option key={c.value} value={c.value}>
-                    {c.label}
-                  </option>
-                ))}
               </select>
             ),
           },
