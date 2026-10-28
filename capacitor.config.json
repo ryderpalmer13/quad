@@ -1,0 +1,13 @@
+{
+  "appId": "app.agorau.ios",
+  "appName": "Agora U",
+  "webDir": "capacitor-www",
+  "server": {
+    "url": "https://agorau.app",
+    "cleartext": false
+  },
+  "ios": {
+    "contentInset": "always",
+    "backgroundColor": "#F3EEE5"
+  }
+}
