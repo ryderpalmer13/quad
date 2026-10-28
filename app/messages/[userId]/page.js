@@ -132,6 +132,16 @@ export default function ThreadPage() {
       )
     } else {
       setContent('')
+      // Let the other person know by email. This never blocks sending.
+      supabase.auth.getSession().then(({ data: sessionData }) => {
+        if (!sessionData.session) return
+        fetch('/api/notify/message', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${sessionData.session.access_token}` },
+          body: JSON.stringify({ receiverId: otherUserId }),
+          keepalive: true,
+        }).catch(() => {})
+      })
       const { data } = await supabase
         .from('messages')
         .select('*')

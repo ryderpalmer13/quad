@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { getStripe } from '../../../../../lib/stripe'
 import { getAdmin, getUserFromRequest } from '../../../../../lib/supabaseAdmin'
 import { paymentsEnabledFor } from '../../../../../lib/payments'
+import { notifyOrder } from '../../../../../lib/orderEmails'
 
 export const dynamic = 'force-dynamic'
 
@@ -58,6 +59,7 @@ export async function POST(req, { params }) {
 
     // Put the item back on Browse.
     await admin.from('listings').update({ sold: false }).eq('id', order.listing_id)
+    await notifyOrder(claimed, 'cancelled', { by: order.buyer_id === user.id ? 'buyer' : 'seller' })
 
     return NextResponse.json({ ok: true })
   } catch (err) {

@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server'
 import { getStripe } from '../../../../../lib/stripe'
 import { getAdmin, getUserFromRequest } from '../../../../../lib/supabaseAdmin'
 import { paymentsEnabledFor } from '../../../../../lib/payments'
+import { notifyOrder } from '../../../../../lib/orderEmails'
 
 export const dynamic = 'force-dynamic'
 
@@ -99,6 +100,7 @@ export async function POST(req, { params }) {
       return fail('The payout did not go through, and nothing was charged to you. Please try again in a minute.', 500)
     }
 
+    await notifyOrder(claimed, 'completed')
     return NextResponse.json({ ok: true })
   } catch (err) {
     console.error('orders/confirm failed:', err)

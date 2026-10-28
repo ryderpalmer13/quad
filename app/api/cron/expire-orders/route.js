@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getStripe } from '../../../../lib/stripe'
 import { getAdmin } from '../../../../lib/supabaseAdmin'
+import { notifyOrder } from '../../../../lib/orderEmails'
 
 export const dynamic = 'force-dynamic'
 
@@ -36,6 +37,7 @@ export async function GET(req) {
       )
       await admin.from('listings').update({ sold: false }).eq('id', order.listing_id)
       refunded += 1
+      await notifyOrder(order, 'expired')
     } catch (err) {
       console.error('auto refund failed for order', order.id, err)
       await admin.from('orders').update({ status: 'paid' }).eq('id', order.id).eq('status', 'refunded')

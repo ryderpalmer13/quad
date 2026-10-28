@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { getStripe } from '../../../../lib/stripe'
 import { getAdmin } from '../../../../lib/supabaseAdmin'
 import { fulfillFromSession } from '../../../../lib/orders'
+import { sendEmail } from '../../../../lib/email'
 
 export const dynamic = 'force-dynamic'
 
@@ -38,6 +39,12 @@ export async function POST(req) {
           })
           .eq('stripe_payment_intent_id', intentId)
           .eq('status', 'paid')
+        await sendEmail({
+          to: 'hello@agorau.app',
+          subject: 'CHARGEBACK opened on an Agora U payment',
+          html: `<p>A card chargeback was opened. Payment intent: ${intentId}. If the order was still held, it is now marked disputed.</p>`,
+          text: `Chargeback opened. Payment intent ${intentId}.`,
+        })
       }
     }
     if (event.type === 'checkout.session.expired') {

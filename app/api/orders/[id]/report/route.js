@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getAdmin, getUserFromRequest } from '../../../../../lib/supabaseAdmin'
 import { paymentsEnabledFor } from '../../../../../lib/payments'
+import { notifyOrder } from '../../../../../lib/orderEmails'
 
 export const dynamic = 'force-dynamic'
 
@@ -41,6 +42,8 @@ export async function POST(req, { params }) {
       .select('id')
       .maybeSingle()
     if (!updated) return fail('This order was already handled.', 409)
+
+    await notifyOrder(order, 'disputed', { reason, byId: user.id })
 
     return NextResponse.json({ ok: true })
   } catch (err) {
