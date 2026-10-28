@@ -22,33 +22,40 @@ export default function EditListingPage() {
   const [message, setMessage] = useState('')
   const [saving, setSaving] = useState(false)
 
+  const [ready, setReady] = useState(false)
+
   useEffect(() => {
     async function loadListing() {
-      const { data: userData } = await supabase.auth.getUser()
+      try {
+        const { data: userData } = await supabase.auth.getUser()
 
-      const { data, error } = await supabase
-        .from('listings')
-        .select('*')
-        .eq('id', listingId)
-        .single()
+        const { data, error } = await supabase
+          .from('listings')
+          .select('*')
+          .eq('id', listingId)
+          .maybeSingle()
 
-      if (error || !data) {
-        setMessage('Listing not found.')
-        setLoading(false)
-        return
+        if (error || !data) {
+          setMessage('Listing not found.')
+          setLoading(false)
+          return
+        }
+
+        if (!userData.user || userData.user.id !== data.user_id) {
+          setMessage('You can only edit your own listings. Make sure you are logged in as the seller.')
+          setLoading(false)
+          return
+        }
+
+        setTitle(data.title || '')
+        setDescription(data.description || '')
+        setPrice(data.price == null ? '' : String(data.price))
+        setCategory(data.category || CATEGORIES[0])
+        setCondition(normalizeCondition(data.condition))
+        setReady(true)
+      } catch (e) {
+        setMessage('Could not load this listing. Please refresh and try again.')
       }
-
-      if (!userData.user || userData.user.id !== data.user_id) {
-        setMessage('You can only edit your own listings.')
-        setLoading(false)
-        return
-      }
-
-      setTitle(data.title)
-      setDescription(data.description)
-      setPrice(data.price)
-      setCategory(data.category || CATEGORIES[0])
-      setCondition(normalizeCondition(data.condition))
       setLoading(false)
     }
 
@@ -119,7 +126,7 @@ export default function EditListingPage() {
 
       {loading && <p>Loading...</p>}
 
-      {!loading && title !== '' && (
+      {!loading && ready && (
         <form onSubmit={handleSave}>
           <div style={{ marginBottom: '24px' }}>
             <label style={labelStyle}>Title</label>
