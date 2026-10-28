@@ -590,7 +590,7 @@ input:focus, select:focus, textarea:focus {
 
 /* Dark "verified" section */
 .verified {
-  background-color: var(--color-black);
+  background-color: var(--color-orange);
   color: var(--color-white);
   text-align: center;
   padding: 64px 24px 72px 24px;
@@ -606,11 +606,11 @@ input:focus, select:focus, textarea:focus {
   margin: 0 auto;
   font-size: 16px;
   line-height: 1.5;
-  color: rgba(245, 239, 230, 0.75);
+  color: rgba(245, 239, 230, 0.9);
 }
 .check-draw circle,
 .check-draw path {
-  stroke: var(--color-orange);
+  stroke: var(--color-white);
   stroke-width: 3;
   stroke-linecap: round;
   stroke-linejoin: round;
@@ -644,5 +644,45 @@ input:focus, select:focus, textarea:focus {
     opacity: 1;
     transform: none;
     transition: none;
+  }
+}
+
+/* Browse: clean tiles, two across on phones */
+.browse-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 28px 22px;
+}
+.tile {
+  display: block;
+  color: var(--color-black);
+}
+.tile-photo {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  border-radius: 12px;
+  overflow: hidden;
+  background-color: var(--color-orange-light);
+}
+.tile-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.3s ease;
+}
+.tile:hover .tile-photo img {
+  transform: scale(1.04);
+}
+.tile-title {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+@media (max-width: 768px) {
+  .browse-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px 12px;
   }
 }

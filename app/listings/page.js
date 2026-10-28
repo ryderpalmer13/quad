@@ -2,122 +2,34 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { supabase } from '../../utils.supabase.mjs'
 import Avatar from '../../components/Avatar'
-import ReportButton from '../../components/ReportButton'
-import BlockButton from '../../components/BlockButton'
 import HowItWorks from '../../components/HowItWorks'
 import Stars, { summarize } from '../../components/Stars'
 import { CATEGORIES } from '../../components/listingOptions'
-import { paymentsEnabledFor, priceToCents, canPayInApp } from '../../lib/payments'
 
 const FILTER_CATEGORIES = ['All', ...CATEGORIES]
 
-const filterField = {
-  padding: '10px 6px',
+const field = {
+  width: '100%',
+  boxSizing: 'border-box',
+  padding: '11px 14px',
   fontSize: '14px',
-  border: 'none',
-  borderBottom: '2px solid var(--color-hairline)',
+  border: '1px solid var(--color-hairline)',
+  borderRadius: '10px',
   fontFamily: 'Inter, sans-serif',
   outline: 'none',
-  backgroundColor: 'transparent',
-  textTransform: 'none',
-  letterSpacing: 'normal',
-  fontWeight: 400,
+  backgroundColor: 'var(--color-surface)',
   color: 'var(--color-black)',
 }
 
-function PhotoCarousel({ photos, alt }) {
-  const [index, setIndex] = useState(0)
+function formatPrice(value) {
+  return Number(value) === 0 ? 'Free' : '$' + Number(value).toFixed(2)
+}
 
-  if (!photos || photos.length === 0) return null
-
-  const multiple = photos.length > 1
-
-  function prev(e) {
-    e.preventDefault()
-    setIndex((index - 1 + photos.length) % photos.length)
-  }
-
-  function next(e) {
-    e.preventDefault()
-    setIndex((index + 1) % photos.length)
-  }
-
-  const arrowStyle = {
-    position: 'absolute',
-    top: '50%',
-    transform: 'translateY(-50%)',
-    backgroundColor: 'rgba(255,255,255,0.9)',
-    border: 'none',
-    width: '32px',
-    height: '32px',
-    borderRadius: '16px',
-    cursor: 'pointer',
-    fontSize: '16px',
-    fontWeight: 700,
-  }
-
-  return (
-    <div
-      className="carousel"
-      style={{
-        position: 'relative',
-        overflow: 'hidden',
-        backgroundColor: 'var(--color-orange-light)',
-      }}
-    >
-      <img
-        src={photos[index]}
-        alt={alt}
-        className="listing-photo"
-        style={{ width: '100%', height: '220px', objectFit: 'cover', display: 'block' }}
-      />
-      {multiple && (
-        <>
-          <button className="carousel-arrow" onClick={prev} style={{ ...arrowStyle, left: '8px' }}>
-            ‹
-          </button>
-          <button className="carousel-arrow" onClick={next} style={{ ...arrowStyle, right: '8px' }}>
-            ›
-          </button>
-          <div
-            style={{
-              position: 'absolute',
-              bottom: '10px',
-              left: 0,
-              right: 0,
-              display: 'flex',
-              justifyContent: 'center',
-              gap: '6px',
-            }}
-          >
-            {photos.map((_, i) => (
-              <span
-                key={i}
-                style={{
-                  width: '7px',
-                  height: '7px',
-                  borderRadius: '50%',
-                  backgroundColor: i === index ? 'var(--color-orange)' : 'rgba(255,255,255,0.8)',
-                }}
-              />
-            ))}
-          </div>
-        </>
-      )}
-      <style jsx>{`
-        .carousel-arrow {
-          opacity: 0;
-          transition: opacity 0.2s ease;
-        }
-        .carousel:hover .carousel-arrow {
-          opacity: 1;
-        }
-      `}</style>
-    </div>
-  )
+function firstPhoto(listing) {
+  if (listing.photo_urls && listing.photo_urls.length > 0) return listing.photo_urls[0]
+  return listing.photo_url || null
 }
 
 export default function ListingsPage() {
@@ -129,13 +41,9 @@ export default function ListingsPage() {
   const [minPrice, setMinPrice] = useState('')
   const [maxPrice, setMaxPrice] = useState('')
   const [currentUserId, setCurrentUserId] = useState(null)
-  const [payEnabled, setPayEnabled] = useState(false)
-  const [buyingId, setBuyingId] = useState(null)
-  const [buyErrors, setBuyErrors] = useState({})
   const [sellers, setSellers] = useState({})
   const [blockedIds, setBlockedIds] = useState([])
   const [ratings, setRatings] = useState({})
-  const router = useRouter()
 
   useEffect(() => {
     // Category chips on the home page link here with ?category=Furniture
@@ -148,17 +56,11 @@ export default function ListingsPage() {
       const { data: userData } = await supabase.auth.getUser()
       if (userData.user) {
         setCurrentUserId(userData.user.id)
-        setPayEnabled(paymentsEnabledFor(userData.user.email))
-      }
-
-      let blockedList = []
-      if (userData.user) {
         const { data: blockRows } = await supabase
           .from('blocks')
           .select('blocked_id')
           .eq('blocker_id', userData.user.id)
-        blockedList = (blockRows || []).map((b) => b.blocked_id)
-        setBlockedIds(blockedList)
+        setBlockedIds((blockRows || []).map((b) => b.blocked_id))
       }
 
       const { data, error } = await supabase
@@ -170,7 +72,7 @@ export default function ListingsPage() {
       if (!error) {
         setListings(data)
 
-        // Look up seller names and pictures. If that is not set up yet, listings still show.
+        // Look up seller names and ratings. If that is not set up yet, listings still show.
         const sellerIds = [...new Set(data.map((listing) => listing.user_id))]
         if (sellerIds.length > 0) {
           const { data: profileRows, error: profileError } = await supabase
@@ -178,10 +80,7 @@ export default function ListingsPage() {
             .select('id, display_name, avatar_url')
             .in('id', sellerIds)
 
-          const { data: reviewRows } = await supabase
-            .from('reviews')
-            .select('seller_id, rating')
-            .in('seller_id', sellerIds)
+          const { data: reviewRows } = await supabase.from('reviews').select('seller_id, rating').in('seller_id', sellerIds)
           setRatings(summarize(reviewRows))
 
           if (!profileError && profileRows) {
@@ -216,8 +115,7 @@ export default function ListingsPage() {
       return new Date(b.created_at) - new Date(a.created_at)
     })
 
-  const filtersActive =
-    categoryFilter !== 'All' || minPrice !== '' || maxPrice !== '' || searchTerm !== ''
+  const filtersActive = categoryFilter !== 'All' || minPrice !== '' || maxPrice !== '' || searchTerm !== ''
 
   function clearFilters() {
     setSearchTerm('')
@@ -227,385 +125,132 @@ export default function ListingsPage() {
     setSortBy('newest')
   }
 
-  function getPhotos(listing) {
-    if (listing.photo_urls && listing.photo_urls.length > 0) return listing.photo_urls
-    if (listing.photo_url) return [listing.photo_url]
-    return []
-  }
-
-  function formatPrice(value) {
-    return Number(value) === 0 ? 'Free' : '$' + Number(value).toFixed(2)
-  }
-
-  // For in app items, buyers message only after they buy. Small items are still arranged in person.
-  function inAppItem(listing) {
-    return payEnabled && canPayInApp(priceToCents(listing.price))
-  }
-
-  function handleMessageSeller(sellerId) {
-    if (!currentUserId) {
-      router.push('/login')
-      return
-    }
-    router.push(`/messages/${sellerId}?small=1`)
-  }
-
-  async function handleBuy(listing) {
-    setBuyErrors((current) => ({ ...current, [listing.id]: '' }))
-    setBuyingId(listing.id)
-    try {
-      const { data } = await supabase.auth.getSession()
-      const token = data.session ? data.session.access_token : ''
-      const res = await fetch('/api/orders/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ listingId: String(listing.id) }),
-      })
-      const json = await res.json()
-      if (res.ok && json.url) {
-        window.location.href = json.url
-        return
-      }
-      setBuyErrors((current) => ({ ...current, [listing.id]: json.error || 'Could not start checkout.' }))
-    } catch (e) {
-      setBuyErrors((current) => ({ ...current, [listing.id]: 'Could not start checkout.' }))
-    }
-    setBuyingId(null)
-  }
-
-  async function handleMarkSold(listingId) {
-    const { error } = await supabase
-      .from('listings')
-      .update({ sold: true })
-      .eq('id', listingId)
-
-    if (!error) {
-      setListings(listings.filter((listing) => listing.id !== listingId))
-    }
-  }
-
   return (
-    <div style={{ maxWidth: '1100px', margin: '48px auto', padding: '0 24px' }}>
-      <h1 style={{ fontSize: '28px', marginBottom: '24px', color: 'var(--color-black)' }}>
-        Browse Listings
-      </h1>
+    <div style={{ maxWidth: '1100px', margin: '28px auto 40px auto', padding: '0 16px' }}>
+      <h1 style={{ fontSize: 'clamp(24px, 6vw, 30px)', margin: '0 0 8px 0', color: 'var(--color-black)' }}>Browse</h1>
 
       <HowItWorks compact />
 
-      <div style={{ display: 'flex', gap: '20px', marginBottom: '16px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
-        <input
-          type="text"
-          placeholder="Search listings..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          style={{
-            flexGrow: 1,
-            padding: '14px',
-            fontSize: '14px',
-            border: 'none',
-            borderBottom: '2px solid var(--color-hairline)',
-            fontFamily: 'Inter, sans-serif',
-            outline: 'none',
-          }}
-        />
-        <select
-          value={categoryFilter}
-          onChange={(e) => setCategoryFilter(e.target.value)}
-          style={{
-            padding: '14px 8px',
-            fontSize: '14px',
-            border: 'none',
-            borderBottom: '2px solid var(--color-hairline)',
-            fontFamily: 'Inter, sans-serif',
-            outline: 'none',
-            backgroundColor: 'transparent',
-          }}
-        >
+      <div style={{ maxWidth: '640px' }}>
+      <input
+        type="text"
+        placeholder="Search listings"
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        style={{ ...field, marginBottom: '10px' }}
+      />
+
+      <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+        <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} style={{ ...field, flex: 1, minWidth: 0 }}>
           {FILTER_CATEGORIES.map((c) => (
             <option key={c} value={c}>
               {c === 'All' ? 'All items' : c}
             </option>
           ))}
         </select>
+        <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} style={{ ...field, flex: 1, minWidth: 0 }}>
+          <option value="newest">Newest</option>
+          <option value="low">Price: low to high</option>
+          <option value="high">Price: high to low</option>
+        </select>
       </div>
 
-      <div style={{ display: 'flex', gap: '14px', marginBottom: '24px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
-        {[
-          {
-            label: 'Sort',
-            node: (
-              <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} style={filterField}>
-                <option value="newest">Newest</option>
-                <option value="low">Price: low to high</option>
-                <option value="high">Price: high to low</option>
-              </select>
-            ),
-          },
-          {
-            label: 'Min price',
-            node: (
-              <input
-                type="number"
-                min="0"
-                inputMode="decimal"
-                placeholder="$0"
-                value={minPrice}
-                onChange={(e) => setMinPrice(e.target.value)}
-                style={{ ...filterField, width: '84px' }}
-              />
-            ),
-          },
-          {
-            label: 'Max price',
-            node: (
-              <input
-                type="number"
-                min="0"
-                inputMode="decimal"
-                placeholder="Any"
-                value={maxPrice}
-                onChange={(e) => setMaxPrice(e.target.value)}
-                style={{ ...filterField, width: '84px' }}
-              />
-            ),
-          },
-        ].map((f) => (
-          <label key={f.label} style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '11px', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', color: 'var(--color-gray)' }}>
-            {f.label}
-            {f.node}
-          </label>
-        ))}
+      <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '22px' }}>
+        <input
+          type="number"
+          min="0"
+          inputMode="decimal"
+          placeholder="Min $"
+          value={minPrice}
+          onChange={(e) => setMinPrice(e.target.value)}
+          style={{ ...field, flex: 1, minWidth: 0 }}
+        />
+        <span style={{ color: 'var(--color-gray)', fontSize: '13px' }}>to</span>
+        <input
+          type="number"
+          min="0"
+          inputMode="decimal"
+          placeholder="Max $"
+          value={maxPrice}
+          onChange={(e) => setMaxPrice(e.target.value)}
+          style={{ ...field, flex: 1, minWidth: 0 }}
+        />
         {filtersActive && (
           <button
             onClick={clearFilters}
-            style={{ background: 'none', border: 'none', padding: '0 0 8px 0', fontSize: '12px', color: 'var(--color-black)', textDecoration: 'underline', cursor: 'pointer' }}
+            style={{ background: 'none', border: 'none', fontSize: '13px', color: 'var(--color-black)', textDecoration: 'underline', cursor: 'pointer', whiteSpace: 'nowrap' }}
           >
-            Clear filters
+            Clear
           </button>
         )}
       </div>
 
+      </div>
+
       {loading && (
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
-            gap: '32px',
-          }}
-        >
-          {[1, 2, 3].map((n) => (
+        <div className="browse-grid">
+          {[1, 2, 3, 4].map((n) => (
             <div key={n}>
-              <div style={{ height: '220px', backgroundColor: 'var(--color-surface)', marginBottom: '12px' }} />
-              <div style={{ height: '10px', width: '60%', backgroundColor: 'var(--color-surface)', marginBottom: '8px' }} />
-              <div style={{ height: '14px', width: '40%', backgroundColor: 'var(--color-surface)' }} />
+              <div style={{ aspectRatio: '1 / 1', borderRadius: '12px', backgroundColor: 'var(--color-surface)', marginBottom: '10px' }} />
+              <div style={{ height: '12px', width: '40%', backgroundColor: 'var(--color-surface)', marginBottom: '8px' }} />
+              <div style={{ height: '12px', width: '70%', backgroundColor: 'var(--color-surface)' }} />
             </div>
           ))}
         </div>
       )}
 
       {!loading && filteredListings.length === 0 && (
-        <p>{filtersActive ? 'No listings match those filters.' : 'No listings found.'}</p>
+        <p style={{ color: 'var(--color-gray)' }}>
+          {filtersActive ? 'No listings match those filters.' : 'No listings yet. Be the first to sell something.'}
+        </p>
       )}
 
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
-          gap: '32px',
-        }}
-      >
-        {filteredListings.map((listing) => (
-          <div key={listing.id} className="listing-card">
-            <Link href={`/listings/${listing.id}`} style={{ display: 'block' }}>
-              <PhotoCarousel photos={getPhotos(listing)} alt={listing.title} />
-            </Link>
-            <p
-              style={{
-                fontSize: '10px',
-                fontWeight: 700,
-                letterSpacing: '1px',
-                textTransform: 'uppercase',
-                color: 'var(--color-orange)',
-                margin: '14px 0 4px 0',
-              }}
-            >
-              {listing.category || 'For Sale'}
-              {listing.condition ? ` · ${listing.condition}` : ''}
-            </p>
-            <h2 style={{ fontSize: '16px', fontWeight: 600, margin: '0 0 6px 0' }}>
-              <Link href={`/listings/${listing.id}`} style={{ color: 'inherit' }}>
-                {listing.title}
-              </Link>
-            </h2>
-            <p style={{ margin: '0 0 10px 0', color: 'var(--color-gray)', fontSize: '13px' }}>
-              {listing.description}
-            </p>
-            {sellers[listing.user_id] && sellers[listing.user_id].display_name && (
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  margin: '0 0 10px 0',
-                  fontSize: '13px',
-                  color: 'var(--color-gray)',
-                }}
-              >
-                <Avatar
-                  url={sellers[listing.user_id].avatar_url}
-                  name={sellers[listing.user_id].display_name}
-                  size={24}
-                />
-                <span style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
-                  <Link href={`/sellers/${listing.user_id}`} style={{ color: 'inherit' }}>
-                    {sellers[listing.user_id].display_name}
-                  </Link>
-                  <Stars
-                    average={ratings[listing.user_id] ? ratings[listing.user_id].average : 0}
-                    count={ratings[listing.user_id] ? ratings[listing.user_id].count : 0}
-                    size={12}
-                  />
-                </span>
+      <div className="browse-grid">
+        {filteredListings.map((listing) => {
+          const photo = firstPhoto(listing)
+          const seller = sellers[listing.user_id]
+          const rating = ratings[listing.user_id]
+          return (
+            <Link key={listing.id} href={`/listings/${listing.id}`} className="tile">
+              <div className="tile-photo">
+                {photo && <img src={photo} alt={listing.title} loading="lazy" />}
+                {currentUserId === listing.user_id && (
+                  <span
+                    style={{
+                      position: 'absolute',
+                      top: '8px',
+                      left: '8px',
+                      backgroundColor: 'var(--color-black)',
+                      color: 'var(--color-white)',
+                      fontSize: '10px',
+                      fontWeight: 700,
+                      letterSpacing: '0.5px',
+                      textTransform: 'uppercase',
+                      padding: '4px 8px',
+                      borderRadius: '999px',
+                    }}
+                  >
+                    Yours
+                  </span>
+                )}
               </div>
-            )}
-            <div
-              style={{
-                borderTop: '1px solid var(--color-hairline)',
-                paddingTop: '12px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              }}
-            >
-              <span style={{ fontWeight: 800, fontSize: '18px', color: 'var(--color-orange)' }}>
+              <div style={{ fontWeight: 800, fontSize: '17px', color: 'var(--color-orange)', margin: '10px 0 2px 0' }}>
                 {formatPrice(listing.price)}
-              </span>
-              {currentUserId === listing.user_id ? (
-                <span
-                  style={{
-                    fontSize: '11px',
-                    fontWeight: 700,
-                    letterSpacing: '1px',
-                    textTransform: 'uppercase',
-                    color: 'var(--color-gray)',
-                  }}
-                >
-                  Your listing
-                </span>
-              ) : inAppItem(listing) ? (
-                <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', color: 'var(--color-gray)' }}>
-                  Payment protected
-                </span>
-              ) : (
-                <button
-                  onClick={() => handleMessageSeller(listing.user_id)}
-                  style={{
-                    backgroundColor: 'var(--color-orange)',
-                    color: 'var(--color-white)',
-                    border: 'none',
-                    padding: '10px 18px',
-                    fontSize: '11px',
-                    fontWeight: 700,
-                    letterSpacing: '1px',
-                    textTransform: 'uppercase',
-                    cursor: 'pointer',
-                  }}
-                >
-                  Message Seller
-                </button>
+              </div>
+              <div className="tile-title" style={{ fontSize: '14px', fontWeight: 600, lineHeight: 1.3 }}>
+                {listing.title}
+              </div>
+              {seller && seller.display_name && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '6px', fontSize: '12px', color: 'var(--color-gray)' }}>
+                  <Avatar url={seller.avatar_url} name={seller.display_name} size={18} />
+                  <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{seller.display_name}</span>
+                  {rating && <Stars average={rating.average} count={rating.count} size={11} showCount={false} />}
+                </div>
               )}
-            </div>
-            {currentUserId !== listing.user_id && inAppItem(listing) && (
-              <div style={{ marginTop: '12px' }}>
-                <button
-                  onClick={() => handleBuy(listing)}
-                  disabled={buyingId === listing.id}
-                  style={{
-                    width: '100%',
-                    backgroundColor: 'var(--color-black)',
-                    color: 'var(--color-white)',
-                    border: 'none',
-                    padding: '12px 18px',
-                    fontSize: '12px',
-                    fontWeight: 700,
-                    letterSpacing: '1px',
-                    textTransform: 'uppercase',
-                    cursor: buyingId === listing.id ? 'not-allowed' : 'pointer',
-                    opacity: buyingId === listing.id ? 0.6 : 1,
-                  }}
-                >
-                  {buyingId === listing.id ? 'Opening checkout...' : 'Buy securely'}
-                </button>
-                {buyErrors[listing.id] && (
-                  <p style={{ fontSize: '12px', color: '#B3261E', margin: '8px 0 0 0' }}>{buyErrors[listing.id]}</p>
-                )}
-              </div>
-            )}
-            {currentUserId !== listing.user_id && (
-              <div style={{ marginTop: '10px', display: 'flex', gap: '16px', alignItems: 'baseline' }}>
-                <ReportButton
-                  listingId={String(listing.id)}
-                  reportedUserId={String(listing.user_id)}
-                  label="Report listing"
-                />
-                <BlockButton
-                  userId={listing.user_id}
-                  label="Block seller"
-                  onBlocked={() => setBlockedIds((current) => [...current, listing.user_id])}
-                />
-              </div>
-            )}
-            {currentUserId === listing.user_id && (
-              <div style={{ display: 'flex', gap: '16px', marginTop: '10px' }}>
-                <Link
-                  href={`/edit-listing/${listing.id}`}
-                  style={{ fontSize: '12px', color: 'var(--color-black)', textDecoration: 'underline' }}
-                >
-                  Edit
-                </Link>
-                {!inAppItem(listing) && (
-                <button
-                  onClick={() => handleMarkSold(listing.id)}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    padding: 0,
-                    fontSize: '12px',
-                    color: 'var(--color-black)',
-                    textDecoration: 'underline',
-                    cursor: 'pointer',
-                  }}
-                >
-                  Mark as sold
-                </button>
-                )}
-              </div>
-            )}
-          </div>
-        ))}
+            </Link>
+          )
+        })}
       </div>
-
-      <style jsx>{`
-        .listing-card {
-          animation: fadeIn 0.4s ease;
-        }
-        .listing-card:hover .listing-photo {
-          transform: scale(1.05);
-        }
-        .listing-photo {
-          transition: transform 0.3s ease;
-        }
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
-            transform: translateY(8px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-      `}</style>
     </div>
   )
 }
