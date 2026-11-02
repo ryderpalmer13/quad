@@ -6,14 +6,13 @@ import { useParams, useSearchParams } from 'next/navigation'
 import { supabase } from '../../../utils.supabase.mjs'
 import ReportButton from '../../../components/ReportButton'
 import BlockButton from '../../../components/BlockButton'
-import { paymentsEnabledFor } from '../../../lib/payments'
 
 export default function ThreadPage() {
   const params = useParams()
   const otherUserId = params.userId
   const searchParams = useSearchParams()
   const smallItem = searchParams.get('small') === '1'
-  // Testers: messaging opens after an order. Everyone else is unchanged for now.
+  // Messaging opens after an order. Small items (under $3) and ongoing conversations stay open.
   const [gated, setGated] = useState(false)
   const [orderId, setOrderId] = useState(null)
   const [blocked, setBlocked] = useState(false)
@@ -45,20 +44,18 @@ export default function ThreadPage() {
         .maybeSingle()
       setBlocked(!!blockRow)
 
-      if (paymentsEnabledFor(userData.user.email)) {
-        const { data: orderRows } = await supabase
-          .from('orders')
-          .select('id, status, buyer_id, seller_id')
-          .in('status', ['paid', 'completed'])
-          .order('created_at', { ascending: false })
-        const match = (orderRows || []).find(
-          (o) =>
-            (o.buyer_id === userData.user.id && o.seller_id === otherUserId) ||
-            (o.seller_id === userData.user.id && o.buyer_id === otherUserId)
-        )
-        setGated(!match)
-        setOrderId(match ? match.id : null)
-      }
+      const { data: orderRows } = await supabase
+        .from('orders')
+        .select('id, status, buyer_id, seller_id')
+        .in('status', ['paid', 'completed', 'disputed'])
+        .order('created_at', { ascending: false })
+      const match = (orderRows || []).find(
+        (o) =>
+          (o.buyer_id === userData.user.id && o.seller_id === otherUserId) ||
+          (o.seller_id === userData.user.id && o.buyer_id === otherUserId)
+      )
+      setGated(!match)
+      setOrderId(match ? match.id : null)
 
       let profile = null
       const full = await supabase
@@ -127,7 +124,7 @@ export default function ThreadPage() {
     if (error) {
       setStatusMessage(
         String(error.message).toLowerCase().includes('row-level security')
-          ? 'You cannot message this person.'
+          ? 'You cannot message this person right now. Messaging opens after an order.'
           : error.message
       )
     } else {
@@ -253,7 +250,7 @@ export default function ThreadPage() {
                 Unblock
               </button>
             </div>
-          ) : gated && !smallItem ? (
+          ) : gated && !smallItem && messages.length === 0 ? (
             <div
               style={{
                 backgroundColor: 'var(--color-surface)',
@@ -277,7 +274,7 @@ export default function ThreadPage() {
           <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: 'var(--color-gray)' }}>
             {orderId
               ? 'Meet in a public spot on campus. Never pay outside the app, your payment is already held safely.'
-              : 'Meet in a public spot on campus and pay in person.'}
+              : 'Meet in a public spot on campus.'}
             {orderId && (
               <>
                 {' '}

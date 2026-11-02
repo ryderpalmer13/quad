@@ -13,7 +13,7 @@ export async function POST(req) {
   try {
     const user = await getUserFromRequest(req)
     if (!user) return fail('Please log in.', 401)
-    if (!paymentsEnabledFor(user.email)) return fail('Payments are not available yet.', 403)
+    if (!paymentsEnabledFor(user.email)) return fail('Secure checkout opens at launch. Check back soon.', 403)
 
     const body = await req.json().catch(() => ({}))
     const listingId = body && body.listingId ? String(body.listingId) : ''

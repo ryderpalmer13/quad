@@ -145,7 +145,7 @@ export default function ListingDetail({ id, initial }) {
   const photos = photosOf(listing)
   const own = me && me === listing.user_id
   const price = Number(listing.price) === 0 ? 'Free' : '$' + Number(listing.price).toFixed(2)
-  const inApp = payEnabled && canPayInApp(priceToCents(listing.price))
+  const inApp = canPayInApp(priceToCents(listing.price))
 
   return (
     <div style={wrap}>

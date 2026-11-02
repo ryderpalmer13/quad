@@ -134,7 +134,7 @@ export default function ListingsPage() {
   }
 
   function inAppItem(listing) {
-    return payEnabled && canPayInApp(priceToCents(listing.price))
+    return canPayInApp(priceToCents(listing.price))
   }
 
   async function handleBuy(listing) {
