@@ -226,8 +226,11 @@ export default function ListingDetail({ id, initial }) {
               <Avatar url={seller.avatar_url} name={seller.display_name} size={32} />
               <span style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                 <span>
-                  Sold by{' '}
-                  <Link href={`/sellers/${listing.user_id}`} style={{ fontWeight: 700, textDecoration: 'underline' }}>
+                  Seller:{' '}
+                  <Link
+                    href={`/sellers/${listing.user_id}`}
+                    style={{ fontWeight: 700, color: 'var(--color-black)', textDecoration: 'underline', textDecorationColor: 'var(--color-orange)', textUnderlineOffset: '3px' }}
+                  >
                     {seller.display_name}
                   </Link>
                 </span>
