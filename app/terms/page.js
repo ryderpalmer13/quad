@@ -14,7 +14,7 @@ const sections = [
   {
     heading: 'Who can use it',
     paragraphs: [
-      'You must be at least 18 years old and a current college student with a working .edu email address. You agree to give accurate information and to keep your login private. You are responsible for what happens on your account.',
+      'You must be at least 18 years old and a current UT Austin student with a working @utexas.edu email address. You agree to give accurate information and to keep your login private. You are responsible for what happens on your account.',
     ],
   },
   {

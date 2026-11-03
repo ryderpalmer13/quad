@@ -16,8 +16,10 @@ export default function SignupPage() {
     setMessage('')
     setSent(false)
 
-    if (!email.endsWith('.edu')) {
-      setMessage('Please use a valid .edu student email address.')
+    // Agora U is UT Austin only for now: @utexas.edu or a utexas.edu subdomain.
+    const domain = email.trim().toLowerCase().split('@')[1] || ''
+    if (domain !== 'utexas.edu' && !domain.endsWith('.utexas.edu')) {
+      setMessage('Agora U is open to UT Austin students for now. Please use your @utexas.edu email.')
       return
     }
 
@@ -58,7 +60,7 @@ export default function SignupPage() {
       <h1 style={{ fontSize: '28px', marginBottom: '32px' }}>Sign up for Agora U</h1>
       <form onSubmit={handleSignup}>
         <div style={{ marginBottom: '24px' }}>
-          <label style={labelStyle}>Student Email (.edu)</label>
+          <label style={labelStyle}>UT Austin Email (@utexas.edu)</label>
           <input
             type="email"
             value={email}
