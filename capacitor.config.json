@@ -4,7 +4,10 @@
   "webDir": "capacitor-www",
   "server": {
     "url": "https://agorau.app",
-    "cleartext": false
+    "cleartext": false,
+    "allowNavigation": [
+      "*.stripe.com"
+    ]
   },
   "ios": {
     "contentInset": "always",
