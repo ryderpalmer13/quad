@@ -52,6 +52,7 @@ export default function ProfilePage() {
   const [nameDraft, setNameDraft] = useState('')
   const [message, setMessage] = useState('')
   const [busy, setBusy] = useState(false)
+  const [adminCount, setAdminCount] = useState(null) // null = not an admin
 
   useEffect(() => {
     async function load() {
@@ -87,6 +88,21 @@ export default function ProfilePage() {
 
       setListings(mine || [])
       setLoading(false)
+
+      // Only admins get a number back. Everyone else gets a refusal and sees nothing.
+      try {
+        const { data: sessionData } = await supabase.auth.getSession()
+        const token = sessionData.session ? sessionData.session.access_token : ''
+        if (token) {
+          const res = await fetch('/api/admin/disputes', { headers: { Authorization: `Bearer ${token}` } })
+          if (res.ok) {
+            const json = await res.json()
+            setAdminCount((json.disputes || []).length)
+          }
+        }
+      } catch (e) {
+        // not an admin, or offline: show nothing
+      }
     }
 
     load()
@@ -383,61 +399,70 @@ export default function ProfilePage() {
         </p>
       )}
 
-      {listings.map((listing) => (
-        <div
-          key={listing.id}
-          style={{
-            display: 'flex',
-            gap: '14px',
-            alignItems: 'center',
-            padding: '12px',
-            marginBottom: '10px',
-            backgroundColor: 'var(--color-surface)',
-            border: '1px solid var(--color-hairline)',
-            borderRadius: '8px',
-          }}
-        >
-          <div
-            style={{
-              width: '64px',
-              height: '64px',
-              borderRadius: '6px',
-              flex: 'none',
-              backgroundColor: 'var(--color-orange-light)',
-              overflow: 'hidden',
-            }}
-          >
-            {firstPhoto(listing) && (
-              <img
-                src={firstPhoto(listing)}
-                alt=""
-                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-              />
-            )}
-          </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: '15px', fontWeight: 600 }}>{listing.title}</div>
-            <div
-              style={{
-                fontSize: '15px',
-                fontWeight: 700,
-                color: 'var(--color-orange)',
-                margin: '2px 0 6px 0',
-              }}
-            >
-              ${Number(listing.price).toFixed(2)}
-            </div>
-            <Link href={`/edit-listing/${listing.id}`} style={{ ...smallLink, display: 'inline' }}>
-              Edit
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
+        {listings.map((listing) => (
+          <div key={listing.id} style={{ minWidth: 0 }}>
+            <Link href={`/edit-listing/${listing.id}`} style={{ display: 'block', textDecoration: 'none', color: 'inherit' }}>
+              <div
+                style={{
+                  position: 'relative',
+                  width: '100%',
+                  aspectRatio: '1 / 1',
+                  borderRadius: '10px',
+                  overflow: 'hidden',
+                  backgroundColor: 'var(--color-orange-light)',
+                  border: '1px solid var(--color-hairline)',
+                }}
+              >
+                {firstPhoto(listing) && (
+                  <img
+                    src={firstPhoto(listing)}
+                    alt=""
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                  />
+                )}
+                <span
+                  style={{
+                    position: 'absolute',
+                    left: '6px',
+                    bottom: '6px',
+                    backgroundColor: 'var(--color-orange)',
+                    color: '#fff',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    padding: '2px 7px',
+                    borderRadius: '999px',
+                  }}
+                >
+                  ${Number(listing.price).toFixed(2)}
+                </span>
+              </div>
+              <div
+                style={{
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  marginTop: '6px',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                }}
+              >
+                {listing.title}
+              </div>
             </Link>
-            {!(showPayouts && canPayInApp(priceToCents(listing.price))) && (
-              <button onClick={() => handleMarkSold(listing.id)} style={smallLink}>
-                Mark as sold
-              </button>
-            )}
+            <div style={{ marginTop: '2px' }}>
+              <Link href={`/edit-listing/${listing.id}`} style={{ ...smallLink, display: 'inline', fontSize: '12px', marginRight: '10px' }}>
+                Edit
+              </Link>
+              {!(showPayouts && canPayInApp(priceToCents(listing.price))) && (
+                <button onClick={() => handleMarkSold(listing.id)} style={{ ...smallLink, fontSize: '12px', marginRight: 0 }}>
+                  Sold
+                </button>
+              )}
+            </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
 
       <div style={{ marginTop: '28px', borderTop: '1px solid var(--color-hairline)' }}>
         <button
@@ -460,6 +485,12 @@ export default function ProfilePage() {
         {showPayouts && (
           <Link href="/payouts" style={linkRow}>
             <span>Seller payouts</span>
+            <span style={{ color: '#9A8C7E' }}>›</span>
+          </Link>
+        )}
+        {adminCount !== null && (
+          <Link href="/admin" style={linkRow}>
+            <span>Admin: disputes{adminCount > 0 ? ` (${adminCount})` : ''}</span>
             <span style={{ color: '#9A8C7E' }}>›</span>
           </Link>
         )}
