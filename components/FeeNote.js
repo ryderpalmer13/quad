@@ -25,7 +25,9 @@ export default function FeeNote({ price }) {
     text = 'Items under $3.00 are arranged in person, so there is no fee.'
   } else {
     const fee = feeCents(cents)
-    text = `Agora U fee (${FEE_PERCENT}%): ${dollars(fee)}. You keep ${dollars(cents - fee)}.`
+    const percentFee = Math.round((cents * FEE_PERCENT) / 100)
+    const feeLabel = fee > percentFee ? `${dollars(fee)} minimum fee` : `${FEE_PERCENT}% fee`
+    text = `You receive ${dollars(cents - fee)} after the ${feeLabel}.`
   }
 
   return (
