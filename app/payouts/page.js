@@ -128,6 +128,32 @@ export default function PayoutsPage() {
             </div>
           )}
 
+          {(state === 'none' || state === 'incomplete') && (
+            <div
+              style={{
+                backgroundColor: 'var(--color-surface)',
+                border: '1px solid var(--color-hairline)',
+                borderRadius: '12px',
+                padding: '16px',
+                marginBottom: '22px',
+                fontSize: '14px',
+                lineHeight: 1.6,
+              }}
+            >
+              <strong>Have these ready (about 3 minutes):</strong>
+              <ul style={{ margin: '8px 0 0 0', paddingLeft: '20px', color: 'var(--color-gray)' }}>
+                <li>Your legal name and date of birth</li>
+                <li>Your home address</li>
+                <li>The last 4 digits of your Social Security number</li>
+                <li>Your phone, for a text code</li>
+                <li>Your bank login, or your routing and account numbers</li>
+              </ul>
+              <p style={{ margin: '10px 0 0 0', fontSize: '12px', color: 'var(--color-gray)' }}>
+                Stripe, our payment partner, collects this to verify you and send your money safely. We never see your SSN or bank details.
+              </p>
+            </div>
+          )}
+
           {state === 'none' && (
             <button onClick={handleSetup} disabled={busy} style={button}>
               {busy ? 'Opening...' : 'Set up payouts'}

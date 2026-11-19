@@ -215,7 +215,7 @@ export default function NewListingPage() {
     <div style={{ maxWidth: '440px', margin: '48px auto', padding: '0 24px' }}>
       <h1 style={{ fontSize: '28px', marginBottom: '32px' }}>Sell an Item</h1>
       {message === 'Listing posted!' ? (
-        <PayoutPrompt strong title="Your listing is live. Get ready to be paid." body="When someone buys, the money goes to you through payouts. Set it up now so you are ready, it takes about 3 minutes." />
+        <PayoutPrompt strong title="Your listing is live. Get ready to be paid." body="When someone buys, the money goes to you through payouts. Set it up now so you are ready. It takes about 3 minutes, and it helps to have your bank account and the last 4 of your SSN handy." />
       ) : (
         <PayoutPrompt />
       )}

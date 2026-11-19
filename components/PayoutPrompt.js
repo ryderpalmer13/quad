@@ -56,7 +56,7 @@ export default function PayoutPrompt({ strong = false, title, body }) {
     >
       <strong style={{ fontSize: '15px' }}>{title || 'Want to sell too?'}</strong>
       <p style={{ margin: '6px 0 14px 0', fontSize: '13px', color: 'var(--color-gray)', lineHeight: 1.5 }}>
-        {body || 'Set up payouts in about 3 minutes so you can get paid in the app when something sells.'}
+        {body || 'Set up payouts in about 3 minutes so you can get paid in the app when something sells. Have your bank account and the last 4 of your SSN handy.'}
       </p>
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
         <Link
